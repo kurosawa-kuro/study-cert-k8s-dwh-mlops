@@ -1,152 +1,198 @@
-### `gitops-cicd-basics.md` — GitOps & CI/CD Deep-Dive
+# KCNA GitOps & CI/CD 基礎 ― 概念理解ガイド
 
-*CKAD 合格レベルの YAML/`kubectl` スキルを前提に、
-KCNA・KCSA・CKS で求められる **“Git 主導デプロイ文化”** を体系的に押さえるガイド。*
-
----
-
-## 1. WHY — そもそも GitOps を採用する理由
-
-| 従来 (ClickOps / 手動 kubectl)      | **GitOps**                              |
-| ------------------------------- | --------------------------------------- |
-| 人手更新 → Drift → 再現困難             | **単一信頼源 (Git)** に宣言的マニフェストを保存           |
-| いつ誰が変更したか不明                     | Git Commit & PR で **監査証跡**              |
-| マルチ環境 (dev/test/prod) の差分管理が手作業 | **ブランチ or Kustomize/Helm** で環境パッチ管理     |
-| 手動 Rollback                     | Git Revert → **即 Rollback** (Reconcile) |
+*対象：CKAD 合格者（基本的なデプロイは習得済み）が
+KCNA で「GitOps と CI/CD の全体像」を体系的に理解するためのガイド*
 
 ---
 
-## 2. WHAT — 用語＆コンポーネント対比
+## 1. CKAD から KCNA への視点転換
 
-| レイヤ    | CI (Build/Test)                            | CD (GitOps Sync)                        |
-| ------ | ------------------------------------------ | --------------------------------------- |
-| 主要 OSS | GitHub Actions, Jenkins, Tekton, GitLab CI | **Argo CD, Flux**                       |
-| トリガ    | Push / PR / Tag                            | Git チェックサム差分 or `ImageUpdateAutomation` |
-| 産物     | コンテナイメージ, Helm Chart                       | 実クラスタの **Desired State = Git**          |
-| アクション  | Lint, UnitTest, `docker build/push`        | Reconcile, Health Check, Auto-Rollback  |
-
-> **覚え方**:
-> **CI → “モノを作るまで”** **CD → “作ったモノを届けるまで”**
+| CKAD での学習内容 | KCNA での追加理解 |
+|------------------|------------------|
+| `kubectl apply` / `helm install` | **なぜ** GitOps が必要なのか？ |
+| 手動デプロイ | **どの原則**が GitOps の基盤か？ |
+| 個別ツールの使用 | **全体システム**での役割分担 |
 
 ---
 
-## 3. GitOps ツール 2 強イメージ
+## 2. GitOps の意義（KCNA 重点）
 
-|                 | **Argo CD**                   | **Flux (v2)**                        |
-| --------------- | ----------------------------- | ------------------------------------ |
-| デプロイ方式          | Pull (Reconciler Pod)         | Pull (Controller + Source/Sync CRD)  |
-| UI              | あり (React ダッシュボード)            | GitOps Toolkit CLI + Grafana ダッシュボード |
-| マルチクラスター        | ApplicationSet (Generator)    | Fleet Pattern (multi-tenant)         |
-| 自動 Image Update | Argo Rollouts / Image updater | `ImageUpdateAutomation` CRD          |
-| 用途イメージ          | UI で状態を可視化したいチーム              | 完全宣言的・CLI 派の SRE                     |
+### 2-1. 従来の課題と GitOps の解決
+
+**CKAD では習得済み**：
+- 手動での `kubectl apply`
+- 個別環境での設定管理
+- 基本的なデプロイ操作
+
+**KCNA で追加理解**：
+- **宣言的インフラ**の重要性
+- **単一信頼源**の必要性
+- **自動化**による一貫性確保
+
+### 2-2. GitOps の3つの原則
+
+| 原則 | 意味 | KCNA での理解 |
+|------|------|---------------|
+| **宣言的** | 望む状態を宣言的に記述 | 「何を」ではなく「どうあるべきか」 |
+| **単一信頼源** | Git が唯一の真実の源 | 「設定の一元管理」 |
+| **自動化** | 変更の自動適用・検証 | 「人間の介入を最小化」 |
 
 ---
 
-## 4. HOW — 最小パイプライン作ってみる
+## 3. CI/CD パイプラインの理解
 
-### 4-1. レポジトリ構成例
+### 3-1. CI と CD の役割分担
+
+| 段階 | 役割 | KCNA での理解 |
+|------|------|---------------|
+| **CI (Continuous Integration)** | コードの統合・テスト | 「品質保証の自動化」 |
+| **CD (Continuous Delivery)** | デプロイの自動化 | 「リリースの自動化」 |
+
+### 3-2. CI/CD の利点
+
+**KCNA で問われるポイント**：
+- **早期問題発見** ― 統合テストによる品質向上
+- **迅速なデプロイ** ― 自動化による効率化
+- **一貫性の確保** ― 標準化されたプロセス
+
+---
+
+## 4. GitOps ツールの理解
+
+### 4-1. 代表的な GitOps ツール
+
+| ツール | 特徴 | KCNA での理解 |
+|--------|------|---------------|
+| **Argo CD** | Pull ベース<br>UI あり | 「宣言的な GitOps 実装」 |
+| **Flux** | Pull ベース<br>宣言的 | 「軽量な GitOps 実装」 |
+| **Jenkins X** | CI/CD 統合<br>GitOps 対応 | 「CI/CD と GitOps の統合」 |
+
+### 4-2. Push vs Pull モデル
+
+**KCNA で問われるポイント**：
+- **Push モデル** ― CI から直接デプロイ
+- **Pull モデル** ― クラスタが Git を監視
+- **GitOps の原則** ― Pull モデルが推奨
+
+---
+
+## 5. GitOps のワークフロー（KCNA 重点）
+
+### 5-1. 基本的なワークフロー
 
 ```
-gitops-demo/
- ├─ kustomization.yaml
- ├─ base/
- │   └─ deployment.yaml   # image: demo:v1
- └─ overlays/prod/
-     └─ kustomization.yaml (replicas=3)
+1. 開発者がコード変更
+   ↓
+2. CI パイプライン実行（テスト・ビルド）
+   ↓
+3. イメージ作成・プッシュ
+   ↓
+4. Git リポジトリ更新（マニフェスト）
+   ↓
+5. GitOps ツールが変更検知
+   ↓
+6. クラスタに自動デプロイ
 ```
 
-### 4-2. CI (GitHub Actions)
+### 5-2. 各段階の重要性
 
-```yaml
-# .github/workflows/build.yml
-on: [push]
-jobs:
-  build:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - name: Build & Push
-        run: |
-          docker build -t ghcr.io/org/demo:${{ github.sha }} .
-          docker push ghcr.io/org/demo:${{ github.sha }}
-      - name: Patch kustomize
-        run: |
-          yq -i '.images[0].newTag = "${{ github.sha }}"' base/kustomization.yaml
-      - name: Commit back
-        run: |
-          git config user.name bot && git config user.email bot@gh
-          git commit -am "image bump ${{ github.sha }}" && git push
+**KCNA で問われるポイント**：
+- **Git の役割** ― 設定の単一信頼源
+- **自動化の意義** ― 人間エラーの削減
+- **検証の重要性** ― 品質保証の自動化
+
+---
+
+## 6. KCNA 試験対策 ― 3つの理解レベル
+
+### Level 1: 概念識別
+- 「GitOps → 宣言的・単一信頼源・自動化」
+- 「CI → 統合・テスト、CD → デプロイ」
+
+### Level 2: 原則理解
+- 「GitOps の3原則の意義」
+- 「Push vs Pull モデルの違い」
+
+### Level 3: 選択判断
+- 「要件に応じた GitOps ツール選択」
+- 「CI/CD パイプラインの設計方針」
+
+---
+
+## 7. CKAD 経験者が陥りがちな誤解
+
+| 誤解 | 正しい理解 |
+|------|-----------|
+| 「GitOps = Git + Kubernetes」 | 「GitOps = 宣言的インフラ管理の原則」 |
+| 「CI/CD = 自動化だけ」 | 「CI/CD = 品質保証 + 自動化」 |
+| 「Pull モデル = 必ず GitOps」 | 「Pull モデル = GitOps の実装方法」 |
+
+---
+
+## 8. KCNA 頻出問題パターン
+
+### 8-1. 原則理解
+```
+Q: GitOps の3つの原則は？
+A: 宣言的、単一信頼源、自動化
 ```
 
-### 4-3. CD (Argo CD)
-
-```bash
-# ❶ Install (kind cluster)
-kubectl create ns argocd
-kubectl apply -n argocd -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
-
-# ❷ Register repo
-argocd repo add https://github.com/you/gitops-demo.git
-
-# ❸ Create Application
-argocd app create demo \
-  --repo https://github.com/you/gitops-demo.git \
-  --path overlays/prod \
-  --dest-namespace prod --dest-server https://kubernetes.default.svc
-
-# ❹ 自動同期
-argocd app set demo --sync-policy automated
+### 8-2. 概念選択
+```
+Q: GitOps で推奨されるデプロイモデルは？
+A: Pull モデル（クラスタが Git を監視）
 ```
 
-`git push` → GitHub Actions で新イメージ Tag → kustomize patch → commit
-→ Argo CD が差分検知 → **Pod 自動 RollingUpdate** が流れる。
+### 8-3. ツール選択
+```
+Q: 宣言的な GitOps 実装に適したツールは？
+A: Argo CD（Pull ベース、UI あり）
+```
 
 ---
 
-## 5. セキュリティ“3 つの鉄則”
+## 9. 学習の優先順位
 
-1. **最小 RBAC**   Argo CD/Flux の ServiceAccount は `apps/*`, `patch` のみに絞る
-2. **署名イメージだけ許可**   cosign + Kyverno/OPA Gatekeeper
-3. **PR / MR レビュー必須**   GitHub CODEOWNERS で Ops チーム承認を強制
+### 高優先度（KCNA 必須）
+1. **GitOps の3原則** ― 宣言的・単一信頼源・自動化
+2. **CI/CD の役割** ― 統合・テスト・デプロイ
+3. **Push vs Pull モデル** ― デプロイ方式の違い
 
----
+### 中優先度（理解を深める）
+1. **GitOps ツール** ― Argo CD、Flux の特徴
+2. **ワークフロー** ― 全体の流れの理解
 
-## 6. KCNA / KCSA / CKS 試験チート
-
-| 試験       | 出やすいワード                    | ワンフレーズ回答例                                                          |
-| -------- | -------------------------- | ------------------------------------------------------------------ |
-| **KCNA** | *“GitOps 原則”*              | Single Source of Truth, Automated Sync, Continuous Drift Detection |
-| **KCSA** | *“supply-chain hardening”* | Image signature + Admission controller in GitOps pipeline          |
-| **CKS**  | *“Progressive Delivery”*   | Argo Rollouts Canary / Blue-Green with automated metrics analysis  |
-
----
-
-## 7. 20 分セルフチェッククイズ
-
-1. GitOps 3 原則を順番に挙げる
-2. “Push-based CD” と “Pull-based GitOps” の違いは？
-3. Argo CD で **自動 Rollback** が起こる条件は？
-4. Flux で **イメージ自動更新** を有効化する CRD 名は？
-
-<details><summary>回答例</summary>
-
-1. Declarative – SSoT, Automated Change, Continuous Reconciliation
-2. Push: CI から `kubectl apply`; Pull: クラスタが Git を Watch
-3. Health=Degraded で前コミットとの差分が自動復元設定あり
-4. `ImageUpdateAutomation`
-
-</details>
+### 低優先度（CKAD で習得済み）
+1. 個別ツールの詳細設定
+2. 具体的な実装手順
 
 ---
 
-## 8. まとめ & 次の一歩
+## 10. セルフチェック（CKAD 経験者向け）
 
-* GitOps = **Git を Kubernetes Desired State の唯一ソース**にする運用文化
-* CI と CD を物理的・責務的に **分離** → セキュリティとスケール両立
-* **Argo CD or Flux** を 1 つ PoC し、
+### 理解度確認
+1. **GitOps の3つの原則は？**
+   - 宣言的（Declarative）
+   - 単一信頼源（Single Source of Truth）
+   - 自動化（Automated）
 
-  * `git revert` → 自動 Rollback
-  * イメージ Tag Push → 自動 Update
-    を体験するのが最短学習コース。
+2. **CI と CD の役割は？**
+   - CI：継続的統合（コード統合・テスト）
+   - CD：継続的デプロイ（自動デプロイ）
 
-> 高度なトピック（Progressive Delivery, Multi-Cluster, Secret Encryption）も必要なら順次ガイドを追加します。お気軽に！
+3. **GitOps で推奨されるデプロイモデルは？**
+   - Pull モデル（クラスタが Git を監視）
+
+---
+
+## 11. まとめ
+
+**CKAD から KCNA への学習方針**：
+- **手動操作** → **自動化原則** への理解
+- **個別ツール** → **全体システム** への視点拡大
+- **操作方法** → **設計原則** への転換
+
+**KCNA 合格の鍵**：
+- GitOps の3つの原則を明確に理解
+- CI/CD の役割と利点を把握
+- Push vs Pull モデルの違いを理解

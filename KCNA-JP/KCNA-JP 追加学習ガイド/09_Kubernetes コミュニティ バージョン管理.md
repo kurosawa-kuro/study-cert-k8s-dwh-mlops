@@ -1,131 +1,217 @@
-### `k8s-community-versioning.md` — Kubernetes コミュニティ & バージョン管理ガイド
+# KCNA Kubernetes コミュニティ バージョン管理 ― 概念理解ガイド
 
-*CKA／KCNA／KCSA で問われる “誰がどうやって Kubernetes を進化させているか” を 1 ファイルにまとめました。*
+*対象：CKAD 合格者（基本的なKubernetes使用は習得済み）が
+KCNA で「Kubernetes エコシステムの全体像」を体系的に理解するためのガイド*
 
 ---
 
-## 1. CNCF ↔ Kubernetes プロジェクトの関係図
+## 1. CKAD から KCNA への視点転換
 
+| CKAD での学習内容 | KCNA での追加理解 |
+|------------------|------------------|
+| `kubectl version` | **なぜ** バージョン管理が重要なのか？ |
+| Kubernetes の使用 | **どのプロセス**でKubernetesが進化しているか？ |
+| 個別機能の利用 | **コミュニティ全体**での開発体制 |
+
+---
+
+## 2. Kubernetes コミュニティの意義（KCNA 重点）
+
+### 2-1. なぜコミュニティを理解するのか？
+
+**CKAD では習得済み**：
+- Kubernetes の基本的な使用
+- 個別機能の操作方法
+- 基本的な設定・運用
+
+**KCNA で追加理解**：
+- **オープンソース開発**の仕組み
+- **ガバナンス**の重要性
+- **エコシステム**の発展プロセス
+
+### 2-2. CNCF と Kubernetes の関係
+
+| 要素 | 役割 | KCNA での理解 |
+|------|------|---------------|
+| **CNCF** | 財団・商標管理・ガバナンス | 「オープンソースの基盤」 |
+| **Kubernetes** | プロジェクト・技術開発 | 「CNCF の主要プロジェクト」 |
+| **コミュニティ** | 開発者・ユーザー・企業 | 「エコシステムの原動力」 |
+
+---
+
+## 3. Kubernetes 開発プロセスの理解
+
+### 3-1. 主要な組織構造
+
+| 組織 | 役割 | KCNA での理解 |
+|------|------|---------------|
+| **Steering Committee** | プロジェクトの方向性決定 | 「戦略的な意思決定」 |
+| **SIG (Special Interest Groups)** | 技術分野別の開発グループ | 「専門的な技術開発」 |
+| **WG (Working Groups)** | 横断的な課題解決グループ | 「特定課題の解決」 |
+
+### 3-2. SIG の主要分野
+
+**KCNA で問われるポイント**：
+- **SIG-Apps** ― アプリケーション管理（Deployment、Job等）
+- **SIG-Node** ― ノード管理（kubelet、CRI等）
+- **SIG-Auth** ― 認証・認可（RBAC、Pod Security等）
+- **SIG-Storage** ― ストレージ（CSI、Volume等）
+- **SIG-Network** ― ネットワーク（Service、CNI等）
+
+---
+
+## 4. KEP (Kubernetes Enhancement Proposal) の理解
+
+### 4-1. KEP の役割
+
+| 段階 | 意味 | KCNA での理解 |
+|------|------|---------------|
+| **Provisional** | 提案段階 | 「アイデアの検討」 |
+| **Implementable** | 実装可能 | 「技術的な実現性確認」 |
+| **Beta** | ベータ版 | 「機能の試験的提供」 |
+| **Stable** | 安定版 | 「本格的な機能提供」 |
+
+### 4-2. KEP プロセスの意義
+
+**KCNA で問われるポイント**：
+- **透明性** ― 開発プロセスの可視化
+- **合意形成** ― コミュニティでの議論
+- **品質保証** ― 段階的な機能成熟
+
+---
+
+## 5. バージョン管理の理解（KCNA 重点）
+
+### 5-1. リリースサイクル
+
+| 項目 | 詳細 | KCNA での理解 |
+|------|------|---------------|
+| **リリース頻度** | 4ヶ月ごと（年3回） | 「定期的な機能提供」 |
+| **サポート期間** | 1年間（N-3） | 「長期サポートの重要性」 |
+| **バージョンスキュー** | 1マイナーバージョン以内 | 「互換性の維持」 |
+
+### 5-2. バージョン管理の重要性
+
+**KCNA で問われるポイント**：
+- **安定性** ― 本番環境での信頼性
+- **互換性** ― 既存システムとの整合性
+- **セキュリティ** ― セキュリティパッチの提供
+
+---
+
+## 6. Feature Gates の理解
+
+### 6-1. Feature Gates の段階
+
+| 段階 | 状態 | KCNA での理解 |
+|------|------|---------------|
+| **Alpha** | 実験的機能 | 「開発・テスト段階」 |
+| **Beta** | ベータ機能 | 「実用化検討段階」 |
+| **GA (General Availability)** | 一般提供 | 「本格運用段階」 |
+
+### 6-2. Feature Gates の意義
+
+**KCNA で問われるポイント**：
+- **段階的導入** ― リスクの最小化
+- **後方互換性** ― 既存システムの保護
+- **機能成熟** ― 品質の向上
+
+---
+
+## 7. KCNA 試験対策 ― 3つの理解レベル
+
+### Level 1: 組織識別
+- 「SIG-Apps → アプリケーション管理」
+- 「Steering Committee → 戦略的意思決定」
+
+### Level 2: プロセス理解
+- 「KEP プロセスの段階」
+- 「バージョン管理の原則」
+
+### Level 3: 選択判断
+- 「機能要件 → 適切なバージョン選択」
+- 「運用要件 → サポート期間の考慮」
+
+---
+
+## 8. CKAD 経験者が陥りがちな誤解
+
+| 誤解 | 正しい理解 |
+|------|-----------|
+| 「Kubernetes = 単一のプロジェクト」 | 「Kubernetes = 大規模なコミュニティプロジェクト」 |
+| 「バージョン = 最新が最適」 | 「バージョン = 要件に応じた選択」 |
+| 「Feature Gates = 必須設定」 | 「Feature Gates = 段階的な機能提供」 |
+
+---
+
+## 9. KCNA 頻出問題パターン
+
+### 9-1. 組織理解
 ```
-CNCF (Linux Foundation)
-  └─ TOC (Technical Oversight Committee)
-        └─ Kubernetes Steering Committee (方向性)
-              ├─ SIG-* (Special Interest Groups)
-              └─ WG-*  (Working Groups, 横串課題)
+Q: Kubernetes のアプリケーション管理を担当する SIG は？
+A: SIG-Apps（Deployment、Job、DaemonSet等）
 ```
 
-* **CNCF**：財団・商標管理
-* **Steering**：憲章・ガバナンス
-* **SIG**：日常開発の実働部隊
-* **WG**：タイムボックスで課題解決
-
----
-
-## 2. 主要 SIG 一覧（試験で名前を見かけるもの）
-
-| SIG             | 主担当領域                           | 代表成果物                                |
-| --------------- | ------------------------------- | ------------------------------------ |
-| **SIG-Apps**    | Deployment/Job/DaemonSet コントローラ | `kubectl rollout`, cron improvements |
-| **SIG-Node**    | kubelet, cgroup, CRI            | cgroup v2 / MemoryQoS                |
-| **SIG-Auth**    | RBAC, OIDC, Admission           | Pod Security Standards               |
-| **SIG-Storage** | CSI, Snapshot, Resize           | VolumeSnapshot API                   |
-| **SIG-Network** | Service/EndpointSlice/CNI       | IPv6 Dual-Stack, kube-proxy IPVS     |
-| **SIG-Release** | リリースサイクル、CI                     | krel, patch releases                 |
-
----
-
-## 3. Kubernetes Enhancement Proposal (KEP) ワークフロー
-
+### 9-2. プロセス理解
 ```
-PR to k/enhancements/keps/NNNN-my-feature.md
-      │
-      ├─➔ [stage: provisional]
-      │     SIG discussion / reviewers
-      │
-      ├─➔ [stage: implementable]
-      │     Feature flag / alpha code lands
-      │
-      ├─➔ [stage: beta]
-      │     Enabled-by-default, docs & tests
-      │
-      └─➔ [stage: stable]
-            Flag removal, API v1
+Q: KEP の Stable 段階の意味は？
+A: 本格的な機能提供、後方互換性の保証
 ```
 
-> **試験覚え方**： ***P-I-B-S***（Provisional → Implementable → Beta → Stable）
-
----
-
-## 4. リリースサイクル & Version Skew Policy
-
-| 項目                | 値                                                                              | 備考                        |
-| ----------------- | ------------------------------------------------------------------------------ | ------------------------- |
-| **リリース頻度**        | **4 ヵ月**（年 3 回）                                                                | v1.30 → v1.31 → v1.32 …   |
-| **サポート期間**        | **1 年**（N-3）                                                                   | v1.32 最新なら v1.29 まで patch |
-| **Version Skew**  | kube-apiserver ≥ kubelet by ≤ 1 minor<br>kubectl ≥ kube-apiserver by ≤ 1 minor | CKA 模試で頻出                 |
-| **Patch Tuesday** | 毎月第二火曜 (Asia 時間水曜)                                                             | CVE 修正                    |
-
----
-
-## 5. Feature Gates & API Deprecation
-
-| 状態              | FeatureGate 値                                  | API 寿命                |
-| --------------- | ---------------------------------------------- | --------------------- |
-| **Alpha**       | `--feature-gates=X=true` (disabled by default) | 0.9 cycles 保証なし       |
-| **Beta**        | Enabled by default, can disable                | ≥1 リリース               |
-| **GA / Stable** | 常時 ON, Flag removed                            | Deprecation 約束 (≥1 年) |
-
----
-
-## 6. コントリビューション最小ステップ
-
-1. **Fork & Branch**
-2. `git commit -s`（DCO署名必須）
-3. `/assign @reviewer` `/ok-to-test` via prow bot
-4. CI (Prow + TestGrid) green → `/lgtm` `/approve` でマージ
-
-> ★ **Good First Issue** ラベルから始めると 1 ～ 2 週間で初 PR 成功しやすい。
-
----
-
-## 7. 試験チート
-
-| 試験       | よく出るワード                                     | 一言回答                                  |
-| -------- | ------------------------------------------- | ------------------------------------- |
-| **KCNA** | *“N-3 support”*                             | 最新 1.32 → 1.29 まで patch 対象            |
-| **KCSA** | *“Who maintains PodSecurity?”*              | SIG-Auth                              |
-| **CKA**  | *“Kubelet skew allowed?”*                   | ≤1 minor below apiserver              |
-| **CKS**  | *“Feature gate to enable seccomp default?”* | `--feature-gates=SeccompDefault=true` |
-
----
-
-## 8. Hands-On — Version Skew Check
-
-```bash
-# Current components
-kubectl version --short
-# Cluster support window
-curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt
-# Kubelet skew validation
-kubelet --version
+### 9-3. バージョン管理
+```
+Q: Kubernetes のサポート期間は？
+A: 1年間（最新版から3バージョン前まで）
 ```
 
 ---
 
-## 9. Self-Quiz (○×)
+## 10. 学習の優先順位
 
-1. v1.31 が最新時、v1.27 は公式パッチを受け取れる。
-2. Beta API は通知なく削除され得る。
-3. SIG-Release が毎月 patch バージョンを切る。
+### 高優先度（KCNA 必須）
+1. **コミュニティ構造** ― CNCF、Steering Committee、SIG
+2. **KEP プロセス** ― Provisional、Implementable、Beta、Stable
+3. **バージョン管理** ― リリースサイクル、サポート期間
 
-<details><summary>解答</summary>1:× (N-3 = 1.28まで) 2:× (1リリース猶予) 3:○ </details>
+### 中優先度（理解を深める）
+1. **Feature Gates** ― Alpha、Beta、GA の段階
+2. **SIG の詳細** ― 各 SIG の担当分野
+
+### 低優先度（CKAD で習得済み）
+1. 個別機能の詳細実装
+2. 具体的な開発プロセス
 
 ---
 
-## 10. まとめ
+## 11. セルフチェック（CKAD 経験者向け）
 
-* **SIG → KEP → FeatureGate → Release** の流れを辿れば「新機能いつ安定？」が予測できる
-* 実務でバージョン選定する際は **N-2** を最低ラインに
-* コントリビューションは **Issue→KEP→PR** の順を守ればスムーズ
+### 理解度確認
+1. **Kubernetes コミュニティの主要組織は？**
+   - CNCF（財団・ガバナンス）
+   - Steering Committee（戦略的意思決定）
+   - SIG（技術分野別開発グループ）
 
-> さらに “KEP テンプレを埋める演習” や “自前 CI で k/k PR テスト” が必要なら続編をリクエストしてください！
+2. **KEP プロセスの段階は？**
+   - Provisional（提案段階）
+   - Implementable（実装可能）
+   - Beta（ベータ版）
+   - Stable（安定版）
+
+3. **バージョン管理の重要ポイントは？**
+   - 4ヶ月ごとのリリース
+   - 1年間のサポート期間
+   - 1マイナーバージョン以内のスキュー
+
+---
+
+## 12. まとめ
+
+**CKAD から KCNA への学習方針**：
+- **個別機能** → **エコシステム全体** への視点拡大
+- **技術使用** → **開発プロセス** への理解
+- **操作方法** → **ガバナンス** への理解
+
+**KCNA 合格の鍵**：
+- Kubernetes コミュニティの構造と役割を理解
+- KEP プロセスとバージョン管理の仕組みを把握
+- オープンソース開発の原則を理解

@@ -1,79 +1,204 @@
-### `cncf-landscape-overview.md` — CNCF Landscape 全体俯瞰ガイド
+# KCNA CNCF Landscape 全体俯瞰 ― 概念理解ガイド
 
-*KCNA／KCSA／CKA で「プロジェクト名をカテゴリで即答できる」状態を目指すサマリー。
-A4 2 枚で印刷しやすいよう、カテゴリ表＋暗記フレーム付き。*
-
----
-
-## 1. Why ― なぜ Landscape を知るべきか
-
-| 試験             | 典型出題パターン                                 |
-| -------------- | ---------------------------------------- |
-| **KCNA**       | *「Prometheus はどのカテゴリ？」* のような“分類クイズ”      |
-| **KCSA / CKS** | *「Istio と Cilium の違いは？」* → セキュリティ特性を語る   |
-| **CKA**        | 運用課題で *「CNI を Calico→Cilium に置換」* 等の設計判断 |
+*対象：CKAD 合格者（Kubernetes操作は習得済み）が
+KCNA で「CNCF エコシステムの全体像」を体系的に理解するためのガイド*
 
 ---
 
-## 2. 公式カテゴリ早見表（主要 OSS 例のみ）
+## 1. CKAD から KCNA への視点転換
 
-| #     | カテゴリ                           | 代表 OSS (5 つ以内)                                      |
-| ----- | ------------------------------ | --------------------------------------------------- |
-| **A** | **App Definition & Dev**       | Helm, Kustomize, Argo CD, Cloud-Native Buildpacks   |
-| **B** | **Orchestration & Management** | Kubernetes, K3s, Crossplane, OpenShift              |
-| **C** | **Runtime**                    | containerd, CRI-O, gVisor, WasmEdge                 |
-| **D** | **Provisioning**               | Terraform, Pulumi, Cluster-API                      |
-| **E** | **Observability & Analysis**   | Prometheus, Loki, OpenTelemetry, Jaeger, Grafana    |
-| **F** | **DB & Messaging**             | Vitess, TiDB, Kafka, NATS                           |
-| **G** | **Network & Service Mesh**     | Cilium, Calico, Istio, Linkerd, Envoy               |
-| **H** | **Storage**                    | Rook-Ceph, OpenEBS, Longhorn                        |
-| **I** | **Security & Compliance**      | Falco, Trivy, Kyverno, OPA Gatekeeper, cert-manager |
-| **J** | **Edge & IoT**                 | KubeEdge, OpenYurt                                  |
-| **K** | **Chaos & Reliability**        | LitmusChaos, Chaos Mesh                             |
-
-> **覚え方：**
-> A→K の “アルファベット順” を目で追いながら、**K8s ワークフロー**に沿って思い浮かべると定着が早い。
-> *例:* ①Dev→②Provision→③Runtime→④O\&M→⑤Obs→⑥Sec の順にアプリが流れるイメージ。
+| CKAD での学習内容 | KCNA での追加理解 |
+|------------------|------------------|
+| `kubectl apply` / `helm install` | **どのカテゴリ**に属するツールか？ |
+| Prometheus / Grafana の使用 | **なぜ** そのカテゴリに分類されるか？ |
+| 個別ツールの操作 | **エコシステム全体**での位置づけ |
 
 ---
 
-## 3. 暗記フレーム：6 ステップでフル Landscape を頭に入れる
+## 2. CNCF Landscape の意義（KCNA 重点）
 
-1. **印刷 & 指差し** 公式 PNG を A3 で印刷。
-2. **カバーチャート法** カテゴリ名を紙で隠し、OSS を見て逆当て。
-3. **1 日 1 カテゴリ** Slack などで「今日は Networking」など宣言してアウトプット。
-4. **OSS⇆ユースケースで接続** *Prometheus = Metrics 時系列* と短語で紐付ける。
-5. **“3+1” ルール** カテゴリごとに **必修 3 つ + 補欠 1 つ** だけ覚える。
-6. **白紙スケッチ** 全カテゴリと代表 OSS を 5 分で手書き → 90 % 埋まれば OK。
+### 2-1. なぜ Landscape を理解するのか？
 
----
+**CKAD では習得済み**：
+- 個別ツールの使用方法
+- 基本的な設定・運用
 
-## 4. Hands-on ミニ演習（カテゴリ→CLI 体感）
+**KCNA で追加理解**：
+- **エコシステム全体**の把握
+- **ツール選択**の指針
+- **技術トレンド**の理解
 
-| カテゴリ           | 体験コマンド                                                            | 何が分かるか                     |
-| -------------- | ----------------------------------------------------------------- | -------------------------- |
-| Observability  | `kubectl exec -it <prom-pod> -- promtool tsdb status /prometheus` | TSDB 内部を可視化                |
-| Network & Mesh | `cilium status` → `cilium monitor`                                | Pod-to-Pod Flow をリアルタイム観察  |
-| Security       | `trivy image nginx:latest`                                        | CVE スキャンの結果フォーマット          |
-| Storage        | `kubectl get sc` → `kubectl describe sc rook-ceph-block`          | CSI Driver がどう PV を動的生成するか |
+### 2-2. CNCF の役割
 
----
-
-## 5. 90 秒セルフチェック（○×形式）
-
-1. Kyverno は **Security** カテゴリである。
-2. containerd は **Runtime** に属する。
-3. Crossplane は **Provisioning** ではなく **Orchestration** に分類される。
-4. OpenTelemetry は **Tracing** だけを扱うプロジェクトである。
-
-<details><summary>回答</summary>1:○ 2:○ 3:× 4:×（Metrics/Logs/Trace 全部）</details>
+| 観点 | CKAD では触れない部分 | KCNA での理解 |
+|------|---------------------|---------------|
+| **標準化** | 業界標準の策定<br>相互運用性の確保 | 「ベンダー非依存の基盤」 |
+| **ガバナンス** | プロジェクトの成熟度管理<br>ライフサイクル管理 | 「プロジェクトの信頼性」 |
+| **エコシステム** | 関連技術の整理<br>技術選択の指針 | 「全体最適化の視点」 |
 
 ---
 
-## 6. まとめ & 次アクション
+## 3. 主要カテゴリの理解（KCNA 重点）
 
-* **KCNA 受験前に “3+1” ルール** を必ず完了 → 出題の 90 % をカバー。
-* **KCSA/CKS では Security カテゴリを掘り下げ**：Trivy DB、OPA Rego、Falco Rules の理解へ。
-* **CKA/CKAD 持ちなら** Helm・Kustomize・Argo CD といった **App Definition & Dev** カテゴリを実務で触り、CLI 操作を身体で覚える。
+### 3-1. カテゴリ分類の原則
 
-> さらに詳細な OSS ごとの比較表や、あなたの案件に合わせた“組み合わせ設計図”が必要であれば遠慮なくリクエストしてください！
+| カテゴリ | 役割 | KCNA での理解 |
+|----------|------|---------------|
+| **App Definition & Dev** | アプリケーション定義・開発 | 「アプリのパッケージング・デプロイ」 |
+| **Orchestration & Management** | オーケストレーション・管理 | 「コンテナの管理・スケジューリング」 |
+| **Runtime** | ランタイム環境 | 「コンテナの実行基盤」 |
+| **Provisioning** | インフラプロビジョニング | 「クラスタ・インフラの構築」 |
+| **Observability & Analysis** | 可観測性・分析 | 「監視・ログ・トレース」 |
+| **Security & Compliance** | セキュリティ・コンプライアンス | 「セキュリティ・ガバナンス」 |
+
+### 3-2. 代表プロジェクトの分類
+
+| プロジェクト | カテゴリ | KCNA での理解 |
+|-------------|----------|---------------|
+| **Kubernetes** | Orchestration & Management | 「コンテナオーケストレーションの標準」 |
+| **Prometheus** | Observability & Analysis | 「メトリクス収集・監視の標準」 |
+| **Helm** | App Definition & Dev | 「Kubernetes アプリのパッケージング」 |
+| **containerd** | Runtime | 「コンテナランタイムの標準」 |
+| **Falco** | Security & Compliance | 「ランタイムセキュリティ監視」 |
+
+---
+
+## 4. プロジェクト成熟度の理解
+
+### 4-1. CNCF 成熟度モデル
+
+| 段階 | 意味 | KCNA での理解 |
+|------|------|---------------|
+| **Sandbox** | 実験段階 | 「新技術・実験的プロジェクト」 |
+| **Incubating** | 育成段階 | 「成長中・実用化検討段階」 |
+| **Graduated** | 成熟段階 | 「本格運用推奨・安定版」 |
+
+### 4-2. 成熟度の意義
+
+**KCNA で問われるポイント**：
+- **Graduated プロジェクト** ― 本格運用に推奨
+- **Incubating プロジェクト** ― 実用化検討可能
+- **Sandbox プロジェクト** ― 実験・評価段階
+
+---
+
+## 5. 技術選択の指針（KCNA 重点）
+
+### 5-1. カテゴリ別選択基準
+
+| カテゴリ | 選択基準 | KCNA での理解 |
+|----------|----------|---------------|
+| **Orchestration** | Kubernetes がデファクト | 「標準的な選択」 |
+| **Runtime** | containerd / CRI-O | 「Kubernetes との互換性」 |
+| **Observability** | Prometheus + Grafana | 「メトリクス監視の標準」 |
+| **Security** | Falco + OPA | 「セキュリティ監視・ポリシー」 |
+
+### 5-2. エコシステム全体の視点
+
+**KCNA で問われるポイント**：
+- **相互運用性** ― 異なるツール間の連携
+- **標準化** ― 共通インターフェースの活用
+- **成熟度** ― プロジェクトの安定性
+
+---
+
+## 6. KCNA 試験対策 ― 3つの理解レベル
+
+### Level 1: 分類識別
+- 「Prometheus → Observability カテゴリ」
+- 「Helm → App Definition カテゴリ」
+
+### Level 2: 役割理解
+- 「Kubernetes → オーケストレーションの中心」
+- 「containerd → ランタイムの標準」
+
+### Level 3: 選択判断
+- 「監視要件 → Prometheus + Grafana」
+- 「セキュリティ要件 → Falco + OPA」
+
+---
+
+## 7. CKAD 経験者が陥りがちな誤解
+
+| 誤解 | 正しい理解 |
+|------|-----------|
+| 「CNCF = Kubernetes だけ」 | 「CNCF = クラウドネイティブ全体のエコシステム」 |
+| 「Graduated = 必ず使うべき」 | 「Graduated = 本格運用に適している」 |
+| 「カテゴリ = 排他的」 | 「カテゴリ = 機能的な分類」 |
+
+---
+
+## 8. KCNA 頻出問題パターン
+
+### 8-1. 分類問題
+```
+Q: Prometheus は CNCF Landscape のどのカテゴリに属するか？
+A: Observability & Analysis（可観測性・分析）
+```
+
+### 8-2. 成熟度理解
+```
+Q: CNCF Graduated プロジェクトの特徴は？
+A: 本格運用に推奨、安定版、広く採用されている
+```
+
+### 8-3. 技術選択
+```
+Q: Kubernetes クラスタの監視に適した CNCF プロジェクトは？
+A: Prometheus（メトリクス収集）+ Grafana（可視化）
+```
+
+---
+
+## 9. 学習の優先順位
+
+### 高優先度（KCNA 必須）
+1. **主要カテゴリ** ― 10カテゴリの役割理解
+2. **代表プロジェクト** ― 各カテゴリの主要プロジェクト
+3. **成熟度モデル** ― Sandbox/Incubating/Graduated
+
+### 中優先度（理解を深める）
+1. **技術選択指針** ― カテゴリ別の選択基準
+2. **エコシステム全体** ― 相互関係の理解
+
+### 低優先度（CKAD で習得済み）
+1. 個別ツールの詳細操作
+2. 具体的な設定・運用方法
+
+---
+
+## 10. セルフチェック（CKAD 経験者向け）
+
+### 理解度確認
+1. **CNCF Landscape の主要カテゴリは？**
+   - App Definition & Dev
+   - Orchestration & Management
+   - Runtime
+   - Provisioning
+   - Observability & Analysis
+   - Security & Compliance
+
+2. **代表的な Graduated プロジェクトは？**
+   - Kubernetes（オーケストレーション）
+   - Prometheus（監視）
+   - containerd（ランタイム）
+   - Helm（パッケージング）
+
+3. **技術選択の指針は？**
+   - 成熟度（Graduated 推奨）
+   - 相互運用性
+   - エコシステムとの整合性
+
+---
+
+## 11. まとめ
+
+**CKAD から KCNA への学習方針**：
+- **個別ツール** → **エコシステム全体** への視点拡大
+- **操作方法** → **技術選択指針** への理解
+- **機能理解** → **分類・成熟度** への理解
+
+**KCNA 合格の鍵**：
+- CNCF Landscape の主要カテゴリを把握
+- 代表プロジェクトの分類と成熟度を理解
+- 技術選択の指針を習得

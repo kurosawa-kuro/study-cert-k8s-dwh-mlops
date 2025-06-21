@@ -1,150 +1,219 @@
-### `observability-three-pillars.md` — Metrics / Logs / Traces 詳細ガイド
+# KCNA Observability 三本柱 ― 概念理解ガイド
 
-*CKAD を終えたエンジニアが KCNA・KCSA・CKS で要求される “可観測性の全体像” を 1 ファイルで把握できるように構成しています。*
-
----
-
-## 0. TL;DR
-
-| Pillar      | 代表 OSS                                   | 主要フォーマット                | 主な問いに答える                             |
-| ----------- | ---------------------------------------- | ----------------------- | ------------------------------------ |
-| **Metrics** | Prometheus / Thanos / Grafana            | PromQL, OpenMetrics     | いま **数値がどう推移**しているか？ (CPU, QPS, SLA) |
-| **Logs**    | Fluent Bit / Loki / Elastic Stack        | JSON / Logfmt / Syslog  | 何が **いつ・どこで**起きたか？ (ERROR, WARN)     |
-| **Traces**  | OpenTelemetry Collector / Jaeger / Tempo | OTLP, W3C Trace Context | 1 リクエストが **どのサービスを何 ms** で通ったか？      |
+*対象：CKAD 合格者（基本的な監視は習得済み）が
+KCNA で「可観測性の全体像」を体系的に理解するためのガイド*
 
 ---
 
-## 1. Why — 可観測性が「三本柱」な理由
+## 1. CKAD から KCNA への視点転換
 
-1. **Metrics** … SLA を保つための **早期傾向検知**
-2. **Logs** … インシデント原因を **深掘り**
-3. **Traces** … 分散アプリで **遅延ボトルネックを特定**
-
-三つを合わせて “MELT” (Metrics-Events-Logs-Traces) スタックとも呼ぶ。
-Prometheus だけでは「遅い原因が何か」は突き止めにくく、トレースが最後の 1 ピースになる。
-
----
-
-## 2. Metrics — 時系列データ
-
-### 2-1. 基礎用語
-
-* **Sample** = `value + timestamp`
-* **Time Series** = `{name, label_set} → [sample…]`
-* **Scrape** = Exporter → Prometheus pull
-
-### 2-2. PromQL ３式だけ覚える
-
-```promql
-rate(http_requests_total[5m])         # RPS
-histogram_quantile(0.99, rate(latency_bucket[5m])) # 99p latency
-sum by(pod) (container_memory_working_set_bytes)   # Mem per Pod
-```
-
-### 2-3. Hands-on
-
-```bash
-# デフォルトターゲット確認
-kubectl -n monitoring port-forward svc/prometheus-k8s 9090:9090 &
-curl -s localhost:9090/api/v1/targets | jq .data.activeTargets[].labels.job | head
-```
+| CKAD での学習内容 | KCNA での追加理解 |
+|------------------|------------------|
+| `kubectl logs` / `kubectl top` | **なぜ** 三本柱が必要なのか？ |
+| Prometheus の設定 | **どの柱**が何を解決するのか？ |
+| 個別ツールの使用 | **全体システム**での役割分担 |
 
 ---
 
-## 3. Logs — イベント履歴
+## 2. Observability 三本柱の意義（KCNA 重点）
 
-### 3-1. Fluent Bit → Loki 流れ
+### 2-1. なぜ三本柱なのか？
+
+**CKAD では習得済み**：
+- 基本的なログ確認
+- メトリクスの取得
+- 個別ツールの操作
+
+**KCNA で追加理解**：
+- **包括的な監視**の必要性
+- **問題解決**の段階的アプローチ
+- **分散システム**での可観測性
+
+### 2-2. 三本柱の役割分担
+
+| 柱 | 解決する問題 | KCNA での理解 |
+|----|-------------|---------------|
+| **Metrics** | 「現在の状態は？」<br>「傾向は？」 | 「数値による状態把握」 |
+| **Logs** | 「何が起きた？」<br>「いつ・どこで？」 | 「イベントの詳細記録」 |
+| **Traces** | 「なぜ遅い？」<br>「どこで詰まった？」 | 「リクエストの流れ追跡」 |
+
+---
+
+## 3. Metrics（メトリクス）の理解
+
+### 3-1. Metrics の特徴
+
+| 観点 | CKAD では触れない部分 | KCNA での理解 |
+|------|---------------------|---------------|
+| **時系列データ** | 定期的な数値収集<br>時系列での分析 | 「傾向・パターンの把握」 |
+| **集約可能** | 複数インスタンスの統合<br>統計処理 | 「全体の状態把握」 |
+| **アラート** | 閾値ベースの通知<br>早期問題検知 | 「予防的監視」 |
+
+### 3-2. 代表的なメトリクス
+
+**KCNA で問われるポイント**：
+- **システムメトリクス** ― CPU、メモリ、ディスク
+- **アプリケーションメトリクス** ― レスポンスタイム、エラー率
+- **ビジネスメトリクス** ― 売上、ユーザー数
+
+---
+
+## 4. Logs（ログ）の理解
+
+### 4-1. Logs の特徴
+
+| 観点 | CKAD では触れない部分 | KCNA での理解 |
+|------|---------------------|---------------|
+| **イベント記録** | 発生した事象の記録<br>時系列での保存 | 「何が起きたかの証拠」 |
+| **構造化** | JSON 形式での記録<br>検索・分析の容易さ | 「効率的な情報抽出」 |
+| **保持期間** | 長期保存・アーカイブ<br>コンプライアンス対応 | 「履歴管理の重要性」 |
+
+### 4-2. ログレベルと用途
+
+**KCNA で問われるポイント**：
+- **ERROR** ― 問題の特定・調査
+- **WARN** ― 潜在的問題の検知
+- **INFO** ― 動作状況の把握
+- **DEBUG** ― 詳細な調査・開発
+
+---
+
+## 5. Traces（トレース）の理解
+
+### 5-1. Traces の特徴
+
+| 観点 | CKAD では触れない部分 | KCNA での理解 |
+|------|---------------------|---------------|
+| **分散追跡** | マイクロサービス間の追跡<br>リクエストフロー | 「複雑なシステムの可視化」 |
+| **パフォーマンス分析** | ボトルネックの特定<br>レイテンシ分析 | 「性能問題の原因特定」 |
+| **相関関係** | 関連する処理の紐付け<br>因果関係の把握 | 「問題の影響範囲特定」 |
+
+### 5-2. トレースの構成要素
+
+**KCNA で問われるポイント**：
+- **Trace ID** ― リクエスト全体の識別子
+- **Span** ― 個別処理の単位
+- **Span Context** ― 処理間の関連情報
+
+---
+
+## 6. 三本柱の連携（KCNA 重点）
+
+### 6-1. 問題解決の流れ
 
 ```
-Pod (stdout) ─► containerd ─► journald
-             └► Fluent Bit ─► Loki ─► Grafana Explore
+1. Metrics で異常検知
+   ↓
+2. Logs で詳細調査
+   ↓
+3. Traces で根本原因特定
 ```
 
-### 3-2. 検索クエリ（LogQL v2）
+### 6-2. 相補的な関係
 
-```logql
-{app="nginx", level="error"} |= "timeout"
+| 柱 | 得意分野 | 苦手分野 | 補完方法 |
+|----|----------|----------|----------|
+| **Metrics** | 傾向把握・アラート | 詳細な原因特定 | Logs で詳細調査 |
+| **Logs** | 詳細な事象記録 | 全体の傾向把握 | Metrics で全体把握 |
+| **Traces** | 分散システム追跡 | 単体システム監視 | Metrics で状態確認 |
+
+---
+
+## 7. KCNA 試験対策 ― 3つの理解レベル
+
+### Level 1: 分類識別
+- 「CPU 使用率 → Metrics」
+- 「エラーメッセージ → Logs」
+- 「リクエストフロー → Traces」
+
+### Level 2: 用途理解
+- 「Metrics → 傾向把握・アラート」
+- 「Logs → 詳細調査・記録」
+- 「Traces → 性能分析・分散追跡」
+
+### Level 3: 選択判断
+- 「監視要件 → 適切な柱の選択」
+- 「問題解決 → 段階的なアプローチ」
+
+---
+
+## 8. CKAD 経験者が陥りがちな誤解
+
+| 誤解 | 正しい理解 |
+|------|-----------|
+| 「Metrics だけで十分」 | 「三本柱の組み合わせが重要」 |
+| 「Logs = テキストファイル」 | 「Logs = 構造化されたデータ」 |
+| 「Traces = 高コスト」 | 「Traces = 問題解決の効率化」 |
+
+---
+
+## 9. KCNA 頻出問題パターン
+
+### 9-1. 分類問題
+```
+Q: アプリケーションのレスポンスタイムを監視するには？
+A: Metrics（時系列での数値監視）
 ```
 
-### 3-3. Hands-on
+### 9-2. 用途理解
+```
+Q: マイクロサービス間の通信遅延を調査するには？
+A: Traces（分散システムの追跡）
+```
 
-```bash
-kubectl logs deploy/nginx --tail 20
-kubectl exec -it deploy/fluent-bit -- tail /var/log/containers/*.log | head
+### 9-3. 選択判断
+```
+Q: システム障害の詳細な原因を調査するには？
+A: Logs（詳細なイベント記録）
 ```
 
 ---
 
-## 4. Traces — 分散トランザクション
+## 10. 学習の優先順位
 
-### 4-1. OpenTelemetry パイプライン
+### 高優先度（KCNA 必須）
+1. **三本柱の役割** ― Metrics、Logs、Traces の特徴
+2. **用途の理解** ― それぞれが解決する問題
+3. **連携の仕組み** ― 相補的な関係
 
-```
-OTel SDK (auto-instrument) 
-   └─> OTLP gRPC 
-        └─> OTel Collector 
-              ├─> Jaeger (storage) 
-              └─> Tempo
-```
+### 中優先度（理解を深める）
+1. **実装方法** ― 各柱の代表ツール
+2. **ベストプラクティス** ― 効果的な組み合わせ
 
-### 4-2. Jaeger UI で見るポイント
-
-* **TraceID** 同一か
-* **Span waterfall** で赤帯(エラー) or 青帯(遅延)
-* **Critical path** 合計 > 95 % は問題域
-
-### 4-3. Hands-on
-
-```bash
-kubectl -n tracing port-forward svc/jaeger-query 16686:16686 &
-open http://localhost:16686
-```
+### 低優先度（CKAD で習得済み）
+1. 個別ツールの詳細設定
+2. 具体的な実装手順
 
 ---
 
-## 5. End-to-End 可観測性パイプライン (例: EKS)
+## 11. セルフチェック（CKAD 経験者向け）
 
-```
-Node Exporter ──┐
-cAdvisor ───────┤   [Metrics] ─► Prometheus ─► Thanos ─► Grafana Dashboards
-App stdout ───┐ │
-Fluent Bit ─┐ │ │   [Logs] ─► Loki ─► Grafana Explore
-            │ │ │
-OTel SDK ─┐ │ │ │   [Traces] ─► OTel Collector ─► Tempo / Jaeger
-          ▼ ▼ ▼ ▼
-          Kubernetes Labels (namespace/pod/container) を共通 key に
-```
+### 理解度確認
+1. **Observability 三本柱は？**
+   - Metrics（メトリクス）
+   - Logs（ログ）
+   - Traces（トレース）
 
----
+2. **各柱の主な用途は？**
+   - Metrics：傾向把握・アラート
+   - Logs：詳細調査・記録
+   - Traces：性能分析・分散追跡
 
-## 6. 15 分セルフラボ
-
-1. **メトリクス追加**
-
-   ```bash
-   helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
-   helm install kube-prom prometheus-community/kube-prometheus-stack
-   ```
-2. **Loki＋Promtail セット追加** (Grafana Agent でも可)
-3. **OTel Sidecar** を sample Python app に auto-instrument
-4. **Grafana Dashboard** を 1 枚だけ作成 → Metric / Log / Trace を Drill-Down
+3. **三本柱の連携の意義は？**
+   - 包括的な問題解決
+   - 段階的な調査アプローチ
+   - 相補的な監視体制
 
 ---
 
-## 7. 試験チート
+## 12. まとめ
 
-| 試験       | よく出るキーワード                                     | 最低覚えること                            |
-| -------- | --------------------------------------------- | ---------------------------------- |
-| **KCNA** | *“Prometheus は Observability の何？”*            | 三本柱の分類＋代表 OSS 名                    |
-| **KCSA** | `audit_log`, `metric_exporter`, `traceparent` | ログ改ざん検知、メトリクスで DoS 検知、Trace Header |
-| **CKS**  | `Falco → Prometheus Alert → Slack`            | 連携パイプラインで攻撃通知                      |
+**CKAD から KCNA への学習方針**：
+- **個別監視** → **包括的可観測性** への視点拡大
+- **ツール操作** → **概念理解** への転換
+- **単体機能** → **全体システム** への理解
 
----
-
-### 8. まとめ
-
-* **Metrics = 遠くを見る望遠鏡**、**Logs = 拡大鏡**、**Traces = 地図と時計**
-* まず **Prom + Loki + OTel Collector** の “P-L-T” を PoC し、
-  ボトルネックが出たら **Thanos (long-term) / Tempo (scalable trace)** を追加。
-
-> さらに SQL-based observability (Grafana Faro, ClickHouse) や eBPF トレースを深掘りしたい場合は気軽にリクエストしてください！
+**KCNA 合格の鍵**：
+- 三本柱の役割と特徴を明確に理解
+- 各柱が解決する問題を把握
+- 三本柱の連携による効果的な監視を理解

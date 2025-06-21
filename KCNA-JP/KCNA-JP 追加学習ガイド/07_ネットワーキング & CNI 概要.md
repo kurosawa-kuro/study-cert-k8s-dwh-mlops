@@ -1,118 +1,217 @@
-### `networking-cni-overview.md` — Kubernetes Networking & CNI Quick Guide
+# KCNA ネットワーキング & CNI 概要 ― 概念理解ガイド
 
-*CKAD 経験者が KCNA／KCSA／CKS に備えて「Pod 間通信の舞台裏」と
-主要 CNI プラグインの違いを 1 ファイルでつかめるよう構成。*
+*対象：CKAD 合格者（基本的なネットワークは習得済み）が
+KCNA で「Kubernetes ネットワーキングの全体像」を体系的に理解するためのガイド*
 
 ---
 
-## 0. Bird-Eye View — “IP-per-Pod” がすべての起点
+## 1. CKAD から KCNA への視点転換
+
+| CKAD での学習内容 | KCNA での追加理解 |
+|------------------|------------------|
+| `kubectl get services` | **なぜ** CNI が必要なのか？ |
+| Service の設定 | **どの技術**がネットワーク分離を実現しているか？ |
+| 個別ネットワーク機能 | **全体システム**での通信フロー |
+
+---
+
+## 2. Kubernetes ネットワーキングの意義（KCNA 重点）
+
+### 2-1. なぜ特別なネットワーキングが必要なのか？
+
+**CKAD では習得済み**：
+- Service の基本的な使用
+- Pod 間通信の確認
+- 基本的なネットワーク設定
+
+**KCNA で追加理解**：
+- **Pod ネットワーク**の特殊性
+- **CNI の役割**と重要性
+- **ネットワーク分離**の仕組み
+
+### 2-2. Kubernetes ネットワーキングの特徴
+
+| 特徴 | 意味 | KCNA での理解 |
+|------|------|---------------|
+| **IP-per-Pod** | 各 Pod に固有の IP アドレス | 「Pod レベルのネットワーク分離」 |
+| **フラットネットワーク** | Pod 間の直接通信 | 「オーバーレイネットワークの必要性」 |
+| **動的割り当て** | Pod 作成時の IP 割り当て | 「CNI による自動管理」 |
+
+---
+
+## 3. CNI (Container Network Interface) の理解
+
+### 3-1. CNI の役割
+
+| 機能 | 説明 | KCNA での理解 |
+|------|------|---------------|
+| **IP 割り当て** | Pod に IP アドレスを動的割り当て | 「Pod ネットワークの管理」 |
+| **ネットワーク設定** | veth ペア・ルーティングの設定 | 「コンテナネットワークの構築」 |
+| **クリーンアップ** | Pod 削除時のネットワーク片付け | 「リソース管理の自動化」 |
+
+### 3-2. CNI プラグインの種類
+
+**KCNA で問われるポイント**：
+- **Flannel** ― シンプル・軽量なオーバーレイネットワーク
+- **Calico** ― BGP ルーティング・NetworkPolicy 対応
+- **Cilium** ― eBPF ベース・高度なネットワーク機能
+
+---
+
+## 4. ネットワークモデルの理解
+
+### 4-1. Pod ネットワークモデル
 
 ```
-┌────────────────────────────┐
-│  Service (ClusterIP)       │  Virtual IP (kube-proxy / eBPF)  
-└┬─────────────┬─────────────┘
- ├─ Pod A (10.244.0.5)  ─────┐
- │    eth0 → veth0 ↔ veth1   │  CNI creates veth‐pair, assigns IP  
- │                           │
- ├─ Pod B (10.244.0.7)  ─────┘   same Node → linux bridge  
- │
- └─  cni0 (10.244.0.1/24)  — overlay / routed → another Node
+Node A                    Node B
+┌─────────────┐          ┌─────────────┐
+│ Pod A       │          │ Pod B       │
+│ 10.244.0.5  │          │ 10.244.1.7  │
+└─────────────┘          └─────────────┘
+         │                        │
+         └─── CNI ネットワーク ───┘
 ```
 
-> **覚え方**: 「Pod＝1st-class IP、Service＝Virtual IP、CNI＝その交通整理係」。
+### 4-2. 通信フローの理解
+
+**KCNA で問われるポイント**：
+- **Pod-to-Pod** ― 直接通信（同一ノード・異なるノード）
+- **Pod-to-Service** ― Service 経由の通信
+- **External-to-Pod** ― 外部からのアクセス
 
 ---
 
-## 1. WHY — ネットワークを理解するメリット
+## 5. Service の役割（KCNA 重点）
 
-| 観点               | 実務 / 試験で効く場面                                        |
-| ---------------- | --------------------------------------------------- |
-| **Troubleshoot** | Pod から他 Pod へ ping 不可 → CNI or NetworkPolicy を即切り分け |
-| **Security**     | CKS で “NetworkPolicy 制御不能 = 失点” を防ぐ                 |
-| **Performance**  | eBPF datapath (Cilium) で p99 レイテンシ削減を議論できる          |
+### 5-1. Service の必要性
 
----
+| 課題 | Service による解決 | KCNA での理解 |
+|------|-------------------|---------------|
+| **Pod の動的性** | 固定エンドポイントの提供 | 「安定したアクセスポイント」 |
+| **負荷分散** | 複数 Pod への分散 | 「スケーラビリティの実現」 |
+| **サービスディスカバリ** | DNS による名前解決 | 「動的なサービス発見」 |
 
-## 2. WHAT — 3 レイヤで整理 (K8s, CNI, Datapath)
+### 5-2. Service の種類
 
-| レイヤ                                     | 説明                                    | 主要コンポーネント                                  |
-| --------------------------------------- | ------------------------------------- | ------------------------------------------ |
-| **Kubernetes Abstract**                 | Service, EndpointSlice, NetworkPolicy | kube-proxy, kube-controller-manager        |
-| **CNI Spec (Container Runtime ↔ Host)** | `ADD`, `DEL`, `CHECK` で veth & Route  | Calico / Cilium / Flannel / Weave / Multus |
-| **Datapath**                            | iptables / ipvs / eBPF / Wireguard    | Cilium eBPF, Calico VPP, Flannel VXLAN     |
-
----
-
-## 3. CNI プラグイン対比表
-
-| 特性            | **Flannel**      | **Calico**                    | **Cilium**                              | **Multus**        |
-| ------------- | ---------------- | ----------------------------- | --------------------------------------- | ----------------- |
-| デフォルト採用       | k3s / MicroK8s   | GKE (Dataplane V2)、EKS Add-on | EKS-Anywhere、AKS Cilium                 | ― (追加接続用)         |
-| モード           | VXLAN / host-gw  | BGP route / VXLAN             | **eBPF native**                         | n/c (delegates)   |
-| NetworkPolicy | ❌ (kube-proxy依存) | ✅ (iptables)                  | ✅ (eBPF)                                | ―                 |
-| 特殊機能          | シンプル & 軽量        | WireGuard, VPP                | Hubble observability, Service mesh lite | SR-IOV, DualStack |
-
-> **試験覚え方**:
-> *“Flannel＝シンプル、Calico＝BGP & NP、Cilium＝eBPF & 観測、Multus＝マルチ NIC”*
+**KCNA で問われるポイント**：
+- **ClusterIP** ― クラスタ内部アクセス
+- **NodePort** ― ノード経由の外部アクセス
+- **LoadBalancer** ― クラウドロードバランサー
 
 ---
 
-## 4. HOW — ハンズオン 30 分
+## 6. ネットワークポリシーの理解
 
-### 4-1. Pod → Pod (同ノード)
+### 6-1. NetworkPolicy の役割
 
-```bash
-kubectl run a --image=busybox -it --restart=Never -- sh
-# 新ターミナル
-kubectl run b --image=busybox -it --restart=Never -- sh
-# Node & IP 確認
-kubectl get pod -o wide
-# ping
-kubectl exec a -- ping -c 3 <Pod-B-IP>
+| 機能 | 説明 | KCNA での理解 |
+|------|------|---------------|
+| **Pod 間通信制御** | 許可・拒否ルールの定義 | 「マイクロセグメンテーション」 |
+| **セキュリティ強化** | 不要な通信の遮断 | 「最小権限の原則」 |
+| **トラフィック制御** | 方向性のある通信制御 | 「ネットワークセキュリティ」 |
+
+### 6-2. NetworkPolicy の実装
+
+**KCNA で問われるポイント**：
+- **CNI プラグイン依存** ― Calico・Cilium などが必要
+- **デフォルト動作** ― 明示的な許可が必要
+- **ルールの優先順位** ― 複数ポリシーの適用順序
+
+---
+
+## 7. KCNA 試験対策 ― 3つの理解レベル
+
+### Level 1: 概念識別
+- 「CNI → Pod ネットワーク管理」
+- 「Service → 負荷分散・サービスディスカバリ」
+
+### Level 2: 役割理解
+- 「CNI プラグインの選択基準」
+- 「Service タイプの使い分け」
+
+### Level 3: 設計判断
+- 「ネットワーク要件 → 適切な CNI 選択」
+- 「セキュリティ要件 → NetworkPolicy 設計」
+
+---
+
+## 8. CKAD 経験者が陥りがちな誤解
+
+| 誤解 | 正しい理解 |
+|------|-----------|
+| 「CNI = Kubernetes の標準機能」 | 「CNI = プラグイン方式のインターフェース」 |
+| 「Service = ロードバランサー」 | 「Service = 抽象化レイヤー」 |
+| 「NetworkPolicy = 必須機能」 | 「NetworkPolicy = CNI プラグイン依存」 |
+
+---
+
+## 9. KCNA 頻出問題パターン
+
+### 9-1. 概念理解
+```
+Q: CNI の主な役割は？
+A: Pod の IP 割り当て・ネットワーク設定・クリーンアップ
 ```
 
-* **ポイント**: veth-pair & linux bridge (cni0) → `ip link | grep veth`.
-
-### 4-2. kube-proxy ルール確認
-
-```bash
-iptables-save | grep KUBE-SVC | head
-# IPVS モードなら
-ipvsadm -ln | head
+### 9-2. 技術選択
+```
+Q: マイクロサービス間の通信制御に適した CNI プラグインは？
+A: Calico または Cilium（NetworkPolicy 対応）
 ```
 
-### 4-3. NetworkPolicy で通信遮断 (Calico/Cilium)
-
-```bash
-kubectl apply -f deny.yaml   # kind: NetworkPolicy (deny all)
-kubectl exec a -- ping -c 3 <Pod-B-IP>   # should fail
+### 9-3. 設計判断
+```
+Q: Pod 間の直接通信を制御するには？
+A: NetworkPolicy を使用して許可・拒否ルールを定義
 ```
 
 ---
 
-## 5. Exam Cheat Sheet
+## 10. 学習の優先順位
 
-| 試験       | 出やすいキーワード            | 即答フレーズ                                        |
-| -------- | -------------------- | --------------------------------------------- |
-| **KCNA** | “CNI 目的”             | Container ↔ Host veth & IPAM                  |
-| **CKAD** | “Service vs Ingress” | *Service = L4 VIP, Ingress = L7 HTTP routing* |
-| **KCSA** | “4 C’s どの層？”         | NetworkPolicy → **Cluster** layer             |
-| **CKS**  | “Cilium Hubble 何?”   | eBPF ベースの flow observability                  |
+### 高優先度（KCNA 必須）
+1. **CNI の役割** ― Pod ネットワーク管理
+2. **Service の機能** ― 負荷分散・サービスディスカバリ
+3. **NetworkPolicy** ― ネットワークセキュリティ
 
----
+### 中優先度（理解を深める）
+1. **CNI プラグイン** ― Flannel、Calico、Cilium の特徴
+2. **ネットワークモデル** ― Pod 間通信の仕組み
 
-## 6. Self-Quiz (○×)
-
-1. Calico は VXLAN をサポートするがデフォルトは BGP ルーティングである。
-2. kube-proxy の iptables モードでは **Node ごとに** Service VIP が DNAT される。
-3. NetworkPolicy は Service ではなく Pod‐Selector がマッチ対象である。
-
-<details><summary>Answer</summary>1:○ 2:○ 3:○</details>
+### 低優先度（CKAD で習得済み）
+1. 個別 CNI プラグインの詳細設定
+2. 具体的なネットワーク設定手順
 
 ---
 
-## 7. まとめ／Next Step
+## 11. セルフチェック（CKAD 経験者向け）
 
-* **ネットワーク理解 = Pod-IP と Service-VIP がどう転送されるか**を追い切ること。
-* 実務では **Calico↔Cilium** の乗せ換え PoC で “eBPF vs iptables” を体感すると理解が一段深くなる。
-* さらなる深掘り（BGP / eBPF マップ、Service Mesh 連携、Dual-Stack IPv6）を希望の場合はお知らせください！
+### 理解度確認
+1. **CNI の主な機能は？**
+   - Pod の IP アドレス割り当て
+   - ネットワーク設定（veth ペア・ルーティング）
+   - Pod 削除時のクリーンアップ
+
+2. **Service の主な役割は？**
+   - 固定エンドポイントの提供
+   - 複数 Pod への負荷分散
+   - サービスディスカバリ
+
+3. **NetworkPolicy の意義は？**
+   - Pod 間通信の制御
+   - ネットワークセキュリティの強化
+   - マイクロセグメンテーションの実現
+
+---
+
+## 12. まとめ
+
+**CKAD から KCNA への学習方針**：
+- **個別機能** → **全体アーキテクチャ** への視点拡大
+- **操作方法** → **概念理解** への転換
+- **設定手順** → **設計原則** への理解
+
+**KCNA 合格の鍵**：
+- CNI の役割と重要性を明確に理解
+- Service の機能と種類を把握
+- NetworkPolicy によるセキュリティ制御を理解
