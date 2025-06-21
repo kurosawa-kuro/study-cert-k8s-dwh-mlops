@@ -1,0 +1,43 @@
+
+### KCNA 用（合計 2〜4 時間）
+
+|ラボ|目安|メモ|
+|---|---|---|
+|**1. Kind／Minikube で 1 ノード起動**|30 min|`kind create cluster` / `minikube start`|
+|**2. Pod → Deployment → Service**|45 min|`kubectl run nginx --image=nginx` → Deployment化→ ClusterIPで curl|
+|**3. コンテナレジストリ概念**|30 min|`docker pull` とイメージレイヤを図で確認|
+|**4. CNCF Landscape 俯瞰**|30 min|Lens など GUI で各リソースを眺める|
+
+> ここまでで **「オブジェクト名と役割」+「宣言的に動く」** を体感できる。
+
+## 取捨選択の目安
+
+- **時間が本当にない場合**
+    
+    - KCNA: ラボ①②だけでも OK。
+        
+    - KCSA: RBAC + NetworkPolicy + trivy を優先（ラボ①②③④）。
+        
+- **CKAD 受験を視野に入れている場合**
+    
+    - KCNA のラボで作った Kind クラスタを残し、CKAD 学習開始まで触り続けて“地ならし”。
+        
+- **運用より開発寄りのロール**
+    
+    - KCSA ラボ⑤⑥⑦は後回しでも可。
+        
+    - 代わりに ConfigMap / Secret マウント操作を追加しておくと実務で役立つ。
+        
+
+---
+
+### まとめ
+
+- **KCNA / KCSA は択一式でも「軽いハンズオン」を 1 日以内で仕込むと記憶効率が跳ね上がる。**
+    
+- ただし **CKAD/CKA 並みの深い CLI 演習までは不要**。
+    
+- _Kind or Minikube_ で **最小クラスタ → 代表的ユースケース** を一通り触る “ミニ・スプリント学習” がコスパ最適。
+    
+
+このくらいのハンズオン量なら学習負荷を抑えつつ、本番で「見たことある！」状態にできます。試験計画にうまく組み込んでみてください。
