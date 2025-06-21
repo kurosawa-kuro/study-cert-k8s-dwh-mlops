@@ -13,12 +13,12 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "KCNA-JP/KCNA-JP 追加学習ガイド/02_コンテナ & OCI 基礎.md",
+                "file": "KCNA-JP/KCNA-JP 追加学習ガイド/03_CNCF Landscape の全体俯瞰.md",
                 "mode": "preview",
                 "source": true
               },
               "icon": "lucide-file",
-              "title": "02_コンテナ & OCI 基礎"
+              "title": "03_CNCF Landscape の全体俯瞰"
             }
           }
         ]
@@ -94,7 +94,7 @@
             "state": {
               "type": "backlink",
               "state": {
-                "file": "KCNA-JP/KCNA-JP 追加学習ガイド/02_コンテナ & OCI 基礎.md",
+                "file": "KCNA-JP/KCNA-JP 追加学習ガイド/03_CNCF Landscape の全体俯瞰.md",
                 "collapseAll": false,
                 "extraContext": false,
                 "sortOrder": "alphabetical",
@@ -104,7 +104,7 @@
                 "unlinkedCollapsed": true
               },
               "icon": "links-coming-in",
-              "title": "02_コンテナ & OCI 基礎へのバックリンク"
+              "title": "03_CNCF Landscape の全体俯瞰へのバックリンク"
             }
           },
           {
@@ -113,12 +113,12 @@
             "state": {
               "type": "outgoing-link",
               "state": {
-                "file": "KCNA-JP/KCNA-JP 追加学習ガイド/02_コンテナ & OCI 基礎.md",
+                "file": "KCNA-JP/KCNA-JP 追加学習ガイド/03_CNCF Landscape の全体俯瞰.md",
                 "linksCollapsed": false,
                 "unlinkedCollapsed": true
               },
               "icon": "links-going-out",
-              "title": "02_コンテナ & OCI 基礎からのアウトゴーイングリンク"
+              "title": "03_CNCF Landscape の全体俯瞰からのアウトゴーイングリンク"
             }
           },
           {
@@ -142,13 +142,13 @@
             "state": {
               "type": "outline",
               "state": {
-                "file": "KCNA-JP/KCNA-JP 追加学習ガイド/02_コンテナ & OCI 基礎.md",
+                "file": "KCNA-JP/KCNA-JP 追加学習ガイド/03_CNCF Landscape の全体俯瞰.md",
                 "followCursor": false,
                 "showSearch": false,
                 "searchQuery": ""
               },
               "icon": "lucide-list",
-              "title": "02_コンテナ & OCI 基礎のアウトライン"
+              "title": "03_CNCF Landscape の全体俯瞰のアウトライン"
             }
           }
         ]
@@ -170,6 +170,7 @@
   },
   "active": "db2682e9fed0431d",
   "lastOpenFiles": [
+    "KCNA-JP/KCNA-JP 追加学習ガイド/02_コンテナ & OCI 基礎.md",
     "KCNA-JP/KCNA-JP 追加学習ガイド/01_クラスタ内部アーキテクチャ.md",
     "KCNA-JP/README.md",
     "KCSA/README.md",
