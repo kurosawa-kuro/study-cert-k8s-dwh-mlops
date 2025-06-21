@@ -1,12 +1,13 @@
-# Secrets & 暗号化管理 基礎 — KMS・External Secrets Operator
+# Secrets & 暗号化管理 基礎 — ウェブエンジニア向け実践ガイド
 
-> **対象:** CKAD 85 %・Killer.sh 70 % のスキルを持つエンジニアが **KCSA** 試験対策として押さえる “Secrets & 暗号化管理” の要点。
+> **対象:** ウェブエンジニア（SQLインジェクション等の基礎セキュリティ知識あり）が **KCSA** 試験対策として押さえる "Secrets & 暗号化管理" の要点。
 > **範囲:** at‑rest KMS 暗号化 / in‑cluster Secret Sync / External Secrets Operator (ESO) × HashiCorp Vault
-> **キーワード:** EncryptionConfiguration + KMS, ESO CRD, `ExternalSecret`, `SecretStore`
+> **キーワード:** EncryptionConfiguration + KMS, ESO CRD, `ExternalSecret`, `SecretStore`
+> **目標:** WebアプリケーションのSecrets管理知識を活かし、k8s 固有の暗号化機能を理解
 
 ---
 
-## 1. 図解：Secret ライフサイクルと責任境界
+## 1. 図解：Secret ライフサイクルと責任境界（攻撃者視点）
 
 ```
         ┌─────────────┐   write    ┌────────────────┐   sync    ┌───────────────┐
@@ -20,15 +21,20 @@ Developer│  Vault UI  │──────────▶│  Vault KV v2   �
                             └─────────────────────────┘  mount  └────────────────┘
 ```
 
+**攻撃ベクトル:**
+- **at-rest KMS**: 暗号化キー漏洩・データ復号・ストレージ侵入
+- **in-cluster Sync**: Secrets漏洩・不正アクセス・同期失敗
+- **RBAC**: 権限昇格・Secrets盗難・認証情報悪用
+
 ---
 
-## 2. 1 行ベストプラクティス
+## 2. ウェブエンジニア向けベストプラクティス
 
-| 領域                  | ベストプラクティス                                                             |
-| ------------------- | --------------------------------------------------------------------- |
-| **at‑rest KMS**     | *`EncryptionConfiguration` で `kms` プロバイダーを使用し、キーは年 1 回ローテーション*        |
-| **in‑cluster Sync** | *ESO を使い **GitOps で `ExternalSecret` 管理**、Secret 変更は自動ローリング*          |
-| **RBAC**            | *ESO Controller に最小限 (`get`, `watch`, `update`) のみ付与、Vault Role も最小化* |
+| 領域                  | ベストプラクティス                                                             | ウェブアプリとの関連性                                    |
+| ------------------- | --------------------------------------------------------------------- | ----------------------------------------------- |
+| **at‑rest KMS**     | *`EncryptionConfiguration` で `kms` プロバイダーを使用し、キーは年 1 回ローテーション*        | WebアプリのDB暗号化・ファイル暗号化・環境変数暗号化に類似        |
+| **in‑cluster Sync** | *ESO を使い **GitOps で `ExternalSecret` 管理**、Secret 変更は自動ローリング*          | Webアプリの.env管理・設定ファイル管理・Secrets管理に類似      |
+| **RBAC**            | *ESO Controller に最小限 (`get`, `watch`, `update`) のみ付与、Vault Role も最小化* | Webアプリのユーザー権限管理・アクセス制御・認証管理に類似        |
 
 ---
 
@@ -144,6 +150,7 @@ kubectl get secret db-credentials -o jsonpath='{.data.password}' | base64 -d  # 
 * [ ] Vault → k8s Secret が ESO により自動同期された
 * [ ] Secret 更新で Deployment がローリングした (`kubectl rollout history`)
 * [ ] KMS キー/Token のアクセス権限を IAM & Vault で最小化した
+* [ ] ウェブアプリケーションの **Secrets管理** との関連性を理解している
 
 ---
 
@@ -153,9 +160,11 @@ kubectl get secret db-credentials -o jsonpath='{.data.password}' | base64 -d  # 
 * External Secrets Operator — Official Docs & Samples
 * HashiCorp Vault — Kubernetes Auth Method Guide
 * AWS Secrets Manager / GCP Secret Manager ESO Providers
+* OWASP Secrets Management Cheat Sheet
+* 12-Factor App — Config Management
 
 ---
 
 ### エンドノート
 
-この 1 枚で **KMS での at‑rest 保護 × ESO での in‑cluster 自動同期** を体験できます。実環境ではクラウド KMS、Vault エンタープライズ、Secrets Manager などへ置き換え、CI パイプラインで `ExternalSecret` テンプレートを GitOps 管理すると万全です。
+この 1 枚で **KMS での at‑rest 保護 × ESO での in‑cluster 自動同期** を体験できます。実環境ではクラウド KMS、Vault エンタープライズ、Secrets Manager などへ置き換え、CI パイプラインで `ExternalSecret` テンプレートを GitOps 管理すると万全です。ウェブエンジニアの既存Secrets管理知識を活かし、k8s 固有の暗号化機能を理解してください。

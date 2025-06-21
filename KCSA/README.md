@@ -1,30 +1,61 @@
-## KCSA ― 学習順ロードマップ
+## KCSA ― ウェブエンジニア向け学習順ロードマップ
 
-> *“何から学ぶと理解が積み重なりやすいか” を意識した **10 フェーズ**。
+> *"何から学ぶと理解が積み重なりやすいか" を意識した **10 フェーズ**。
 > 1 ブロック学んだら「公式ドキュメント参照 → 小さな Lab で確認 → 20 行メモ」で回すと効率的です。*
+> **対象:** ウェブエンジニア（SQLインジェクション等の基礎セキュリティ知識あり）
 
-| 学習フェーズ                      | 重点テーマ                              | 押さえる項目                                         | ハンズオン例                                 |
-| --------------------------- | ---------------------------------- | ---------------------------------------------- | -------------------------------------- |
-| **0. 前提確認**                 | k8s コア概念の復習                        | Pod / Deployment / Service / RBAC              | `kubectl auth can-i` で権限チェック           |
-| **1. 4 C’s セキュリティモデル**      | Cloud / Cluster / Container / Code | 境界と責任分担                                        | A4 に 4 層図を描き、各層ベストプラクティスを 1 行ずつ書く      |
-| **2. クラウド基盤ハードニング**         | IAM・ネットワーク分離・Audit                 | IAM 最小権限 / VPC PrivateLink / CloudTrail        | AWS IAM Policy Simulator で過剰権限を検出      |
-| **3. Cluster Hardening 基礎** | RBAC・PodSecurity・Admission         | PSS (baseline/restricted)・OPA/Kyverno          | `kubectl run` で Privileged Pod → 拒否を確認 |
-| **4. ネットワーク & 暗号化**         | NetworkPolicy・TLS・etcd Encryption  | Allow/deny ルール・TLS 証明書・EncryptionConfiguration | Calico で `default-deny` → 特定ポートのみ許可    |
-| **5. コンテナランタイム保護**          | seccomp・AppArmor・rootless          | DefaultProfile・RuntimeClass                    | `run --security-opt seccomp=...`       |
-| **6. サプライチェーン & イメージ**      | SBOM・署名・脆弱性スキャン                    | Cosign・Trivy・in-toto                           | `cosign sign && cosign verify`         |
-| **7. 実行時脅威検知**              | Falco / eBPF                       | Syscall 監視・Falco ルール                           | Falco が `/etc/shadow` 読取を検出するかテスト      |
-| **8. 監査 & ロギング**            | Audit Policy・Centralized Logs      | `audit-policy.yaml` レベル設定・Fluent Bit           | `kubectl exec` を AuditLog で確認          |
-| **9. Secrets & 暗号化管理**      | KMS・External Secrets Operator      | at-rest KMS、in-cluster Secret sync             | ESO で Vault → Secret 自動同期              |
-| **10. 模試 & 復習**             | KillerShell / Udemy 模試             | 70 % 以上 × 2 回                                  | 間違えた問題をフェーズに紐付け再学習                     |
+| 学習フェーズ                      | 重点テーマ                              | 押さえる項目                                         | ハンズオン例                                 | ウェブアプリとの関連性                                    |
+| --------------------------- | ---------------------------------- | ---------------------------------------------- | -------------------------------------- | ----------------------------------------------- |
+| **0. 前提確認**                 | k8s コア概念の復習                        | Pod / Deployment / Service / RBAC              | `kubectl auth can-i` で権限チェック           | Webアプリのユーザー権限管理・セッション管理に類似              |
+| **1. 4 C's セキュリティモデル**      | Cloud / Cluster / Container / Code | 境界と責任分担                                        | A4 に 4 層図を描き、各層ベストプラクティスを 1 行ずつ書く      | Webアプリの多層防御・責任分担・セキュリティアーキテクチャに類似        |
+| **2. クラウド基盤ハードニング**         | IAM・ネットワーク分離・Audit                 | IAM 最小権限 / VPC PrivateLink / CloudTrail        | AWS IAM Policy Simulator で過剰権限を検出      | Webアプリのクラウドインフラセキュリティ・アクセス制御に類似        |
+| **3. Cluster Hardening 基礎** | RBAC・PodSecurity・Admission         | PSS (baseline/restricted)・OPA/Kyverno          | `kubectl run` で Privileged Pod → 拒否を確認 | Webアプリのセキュリティ制御・バリデーション・ポリシー管理に類似      |
+| **4. ネットワーク & 暗号化**         | NetworkPolicy・TLS・etcd Encryption  | Allow/deny ルール・TLS 証明書・EncryptionConfiguration | Calico で `default-deny` → 特定ポートのみ許可    | Webアプリのネットワークセキュリティ・HTTPS・暗号化に類似          |
+| **5. コンテナランタイム保護**          | seccomp・AppArmor・rootless          | DefaultProfile・RuntimeClass                    | `run --security-opt seccomp=...`       | Webアプリの実行環境セキュリティ・サンドボックス化に類似            |
+| **6. サプライチェーン & イメージ**      | SBOM・署名・脆弱性スキャン                    | Cosign・Trivy・in-toto                           | `cosign sign && cosign verify`         | Webアプリの開発セキュリティ・依存関係管理・CI/CDに類似          |
+| **7. 実行時脅威検知**              | Falco / eBPF                       | Syscall 監視・Falco ルール                           | Falco が `/etc/shadow` 読取を検出するかテスト      | Webアプリの監視・ログ・異常検知に類似                        |
+| **8. 監査 & ロギング**            | Audit Policy・Centralized Logs      | `audit-policy.yaml` レベル設定・Fluent Bit           | `kubectl exec` を AuditLog で確認          | Webアプリのログ・監査・証跡管理に類似                        |
+| **9. Secrets & 暗号化管理**      | KMS・External Secrets Operator      | at-rest KMS、in-cluster Secret sync             | ESO で Vault → Secret 自動同期              | WebアプリのSecrets管理・環境変数管理・暗号化に類似            |
+| **10. 模試 & 復習**             | KillerShell / Udemy 模試             | 70 % 以上 × 2 回                                  | 間違えた問題をフェーズに紐付け再学習                     | 実務でのセキュリティ実装に応用                              |
 
 ### 進め方 Tips
 
 1. **図解→CLI→ポリシー適用** の順に手を動かすと理解が定着。
 2. **Falco ルール → Prometheus Alert → Slack** の一連パスを作ると複数フェーズを横断で復習できる。
 3. 公式ドキュメントを必ず試験中と同じ検索手順で読む（`site:kubernetes.io` 検索など）。
+4. **ウェブエンジニアの既存知識を活かす**: SQLインジェクション対策 → 入力検証、XSS対策 → 出力エスケープ、認証管理 → RBAC、ログ管理 → Audit Policy など。
 
-この順番で学べば、**インフラ外周 → Cluster 内側 → ランタイム → サプライチェーン → 監査・Secrets** と “攻撃面を狭める順” に進めるため、概念が自然に積み上がります。
+この順番で学べば、**インフラ外周 → Cluster 内側 → ランタイム → サプライチェーン → 監査・Secrets** と "攻撃面を狭める順" に進めるため、概念が自然に積み上がります。
 
-‘‘‘‘‘‘‘‘‘‘‘‘‘‘‘‘
-CKAD 85% CKAD Killer.sh70%前提のプログラマーがKCSA試験対策に下記の基本技術テーマを学ぶ基礎学習教材を新しいドキュメントで作成依頼
-‘‘‘‘‘‘‘‘‘‘‘‘‘‘‘‘
+---
+
+## 学習ガイド一覧
+
+各フェーズの詳細ガイドは以下の通りです：
+
+- [00_前提確認.md](./学習ガイド/00_前提確認.md) - k8s コア概念セキュリティ復習
+- [01_4 C's セキュリティモデル.md](./学習ガイド/01_4%20C's%20セキュリティモデル.md) - 4層セキュリティモデル
+- [02_クラウド基盤ハードニング.md](./学習ガイド/02_クラウド基盤ハードニング.md) - AWS 基盤セキュリティ
+- [03_Cluster Hardening 基礎.md](./学習ガイド/03_Cluster%20Hardening%20基礎.md) - クラスタハードニング
+- [04_ネットワーク & 暗号化.md](./学習ガイド/04_ネットワーク%20&%20暗号化.md) - ネットワークセキュリティ
+- [05_コンテナランタイム保護.md](./学習ガイド/05_コンテナランタイム保護.md) - ランタイム保護
+- [06_サプライチェーン & イメージ.md](./学習ガイド/06_サプライチェーン%20&%20イメージ.md) - サプライチェーンセキュリティ
+- [07_実行時脅威検知.md](./学習ガイド/07_実行時脅威検知.md) - 実行時監視
+- [08_監査 & ロギング.md](./学習ガイド/08_監査%20&%20ロギング.md) - 監査・ログ管理
+- [09_Secrets & 暗号化管理.md](./学習ガイド/09_Secrets%20&%20暗号化管理.md) - Secrets管理
+
+---
+
+## 対象者向けカスタマイズ
+
+**CKAD 85% CKAD Killer.sh70%前提のプログラマーがKCSA試験対策に下記の基本技術テーマを学ぶ基礎学習教材を新しいドキュメントで作成したが、リファクタリング依頼**
+
+・CKAD学習範囲は重複するので、説明は軽めで良し
+・本人はウェブエンジニア数年実務しているが、特段セキュリティエンジニアとしては実務していない
+・SQLインジェクション等の典型的なウェブエンジニア セキュリティを数個知っている程度
+
+**改善点:**
+- 各ガイドで **攻撃者視点** を追加し、セキュリティ意識を強化
+- ウェブアプリケーションとの **関連性** を明示し、既存知識を活用
+- CKAD学習範囲との **重複を軽減** し、セキュリティ特化の内容に調整
+- **実践的なハンズオン** を重視し、理論と実装のバランスを改善

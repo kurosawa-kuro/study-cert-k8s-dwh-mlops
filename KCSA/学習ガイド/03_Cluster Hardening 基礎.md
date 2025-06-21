@@ -1,12 +1,12 @@
-# Cluster Hardening 基礎 — RBAC・PodSecurity・Admission
+# Cluster Hardening 基礎 — ウェブエンジニア向け実践ガイド
 
-> **対象:** CKAD 85 %・Killer.sh 70 % のスキルを持つエンジニアが KCSA 試験対策として押さえる **Cluster Hardening** のエッセンシャル。
+> **対象:** ウェブエンジニア（SQLインジェクション等の基礎セキュリティ知識あり）が KCSA 試験対策として押さえる **Cluster Hardening** のエッセンシャル。
 > **範囲:** RBAC, Pod Security Standards (PSS), Admission Controller (OPA Gatekeeper / Kyverno)
 > **目標:** 最小権限 & ポリシー駆動のクラスタを素早く構築し、`kubectl run` で Privileged Pod が拒否されることを実演・理解する。
 
 ---
 
-## 1. A4 図解：Security フロー全体像
+## 1. A4 図解：Security フロー全体像（攻撃者視点）
 
 ```
 ┌────────┐   ServiceAccount   ┌──────────────┐   Pod  ┌──────────────┐
@@ -20,15 +20,20 @@
                              └───────────────────┘  └───────────────────┘
 ```
 
+**攻撃ベクトル:**
+- **RBAC**: 権限昇格・サービスアカウント悪用・過剰権限
+- **PSS**: 特権コンテナ・ホストマウント・リソース枯渇
+- **Admission**: ポリシー回避・不正なリソース作成・セキュリティ設定無視
+
 ---
 
-## 2. 1 行ベストプラクティス
+## 2. ウェブエンジニア向けベストプラクティス
 
-| カテゴリ          | ベストプラクティス                                                        |
-| ------------- | ---------------------------------------------------------------- |
-| **RBAC**      | *Role/ClusterRole を職務単位で細分化し、`kubectl auth can-i --as` で定期検証*    |
-| **PSS**       | *Namespace に `baseline` → `restricted` へ段階的に Enforcement を引き上げる* |
-| **Admission** | *OPA Gatekeeper / Kyverno で組織ポリシーをコード化 (GitOps) ＋ CI でテスト*       |
+| カテゴリ          | ベストプラクティス                                                        | ウェブアプリとの関連性                                    |
+| ------------- | ---------------------------------------------------------------- | ----------------------------------------------- |
+| **RBAC**      | *Role/ClusterRole を職務単位で細分化し、`kubectl auth can-i --as` で定期検証*    | Webアプリのユーザー権限管理・セッション管理に類似              |
+| **PSS**       | *Namespace に `baseline` → `restricted` へ段階的に Enforcement を引き上げる* | Webアプリの入力検証・出力エスケープ・実行権限制限に類似          |
+| **Admission** | *OPA Gatekeeper / Kyverno で組織ポリシーをコード化 (GitOps) ＋ CI でテスト*       | Webアプリのバリデーション・サニタイゼーション・セキュリティヘッダーに類似 |
 
 ---
 
@@ -98,6 +103,7 @@ kubectl apply -f https://raw.githubusercontent.com/open-policy-agent/gatekeeper/
 * [ ] baseline と restricted の主な差分を 3 つ列挙できる
 * [ ] Kyverno / Gatekeeper どちらでも Privileged 拒否が機能する
 * [ ] Admission エラーを `kubectl describe pod` で追跡できる
+* [ ] ウェブアプリケーションの **セキュリティ制御** との関連性を理解している
 
 ---
 
@@ -107,9 +113,10 @@ kubectl apply -f https://raw.githubusercontent.com/open-policy-agent/gatekeeper/
 * Kyverno Policy Samples — Disallow Privileged
 * OPA Gatekeeper Library — `k8spspprivileged` ConstraintTemplate
 * Blog: "From PodSecurityPolicy to PSS + Kyverno" (CNCF)
+* OWASP Kubernetes Security Cheat Sheet
 
 ---
 
 ### エンドノート
 
-このガイドは「**PSS → Admission Controller → RBAC**」の 3 段レイヤで守りを固めるための最短ルートです。まずは Privileged Pod を Block できる状態まで進め、次に `hostNetwork` 禁止やイメージ署名検証など他ポリシーへ拡張してみてください。
+このガイドは「**PSS → Admission Controller → RBAC**」の 3 段レイヤで守りを固めるための最短ルートです。まずは Privileged Pod を Block できる状態まで進め、次に `hostNetwork` 禁止やイメージ署名検証など他ポリシーへ拡張してみてください。ウェブエンジニアの既存セキュリティ知識を活かし、k8s 固有のセキュリティ制御を理解してください。
