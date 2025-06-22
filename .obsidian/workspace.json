@@ -13,12 +13,12 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "KCNA-JP/KCNA-JP 追加学習ガイド/03_CNCF Landscape の全体俯瞰.md",
+                "file": "KCNA-JP/KCNA-JP 追加学習ガイド/01_クラスタ内部アーキテクチャ.md",
                 "mode": "preview",
                 "source": true
               },
               "icon": "lucide-file",
-              "title": "03_CNCF Landscape の全体俯瞰"
+              "title": "01_クラスタ内部アーキテクチャ"
             }
           }
         ]
@@ -94,7 +94,7 @@
             "state": {
               "type": "backlink",
               "state": {
-                "file": "KCNA-JP/KCNA-JP 追加学習ガイド/03_CNCF Landscape の全体俯瞰.md",
+                "file": "KCNA-JP/KCNA-JP 追加学習ガイド/01_クラスタ内部アーキテクチャ.md",
                 "collapseAll": false,
                 "extraContext": false,
                 "sortOrder": "alphabetical",
@@ -104,7 +104,7 @@
                 "unlinkedCollapsed": true
               },
               "icon": "links-coming-in",
-              "title": "03_CNCF Landscape の全体俯瞰へのバックリンク"
+              "title": "01_クラスタ内部アーキテクチャへのバックリンク"
             }
           },
           {
@@ -113,12 +113,12 @@
             "state": {
               "type": "outgoing-link",
               "state": {
-                "file": "KCNA-JP/KCNA-JP 追加学習ガイド/03_CNCF Landscape の全体俯瞰.md",
+                "file": "KCNA-JP/KCNA-JP 追加学習ガイド/01_クラスタ内部アーキテクチャ.md",
                 "linksCollapsed": false,
                 "unlinkedCollapsed": true
               },
               "icon": "links-going-out",
-              "title": "03_CNCF Landscape の全体俯瞰からのアウトゴーイングリンク"
+              "title": "01_クラスタ内部アーキテクチャからのアウトゴーイングリンク"
             }
           },
           {
@@ -142,13 +142,13 @@
             "state": {
               "type": "outline",
               "state": {
-                "file": "KCNA-JP/KCNA-JP 追加学習ガイド/03_CNCF Landscape の全体俯瞰.md",
+                "file": "KCNA-JP/KCNA-JP 追加学習ガイド/01_クラスタ内部アーキテクチャ.md",
                 "followCursor": false,
                 "showSearch": false,
                 "searchQuery": ""
               },
               "icon": "lucide-list",
-              "title": "03_CNCF Landscape の全体俯瞰のアウトライン"
+              "title": "01_クラスタ内部アーキテクチャのアウトライン"
             }
           }
         ]
@@ -170,10 +170,19 @@
   },
   "active": "db2682e9fed0431d",
   "lastOpenFiles": [
+    "README.md",
+    "KCNA-JP/KCNA-JP 追加学習ガイド/07_ネットワーキング & CNI 概要.md",
+    "KCNA-JP/KCNA-JP 追加学習ガイド/06_4 C’s セキュリティモデル.md",
+    "KCNA-JP/KCNA-JP 追加学習ガイド/05_GitOps & CI CD 基礎.md",
+    "KCNA-JP/KCNA-JP 追加学習ガイド/04_Observability 三本柱.md",
+    "KCNA-JP/KCNA-JP 追加学習ガイド/08_ストレージ & CSI 概要.md",
     "KCNA-JP/KCNA-JP 追加学習ガイド/02_コンテナ & OCI 基礎.md",
     "KCNA-JP/KCNA-JP 追加学習ガイド/01_クラスタ内部アーキテクチャ.md",
+    "KCNA-JP/具体的な「最小ハンズオン」メニュー KCNA.md",
+    "KCNA-JP/KCNA-JP 追加学習ガイド/09_Kubernetes コミュニティ バージョン管理.md",
+    "KCSA/具体的な「最小ハンズオン」メニュー KCSA.md",
+    "KCNA-JP/KCNA-JP 追加学習ガイド/03_CNCF Landscape の全体俯瞰.md",
     "KCNA-JP/README.md",
-    "KCSA/README.md",
-    "README.md"
+    "KCSA/README.md"
   ]
 }
