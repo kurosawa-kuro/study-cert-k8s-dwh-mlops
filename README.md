@@ -1,1 +1,1 @@
-# study-k8s-dwh-mlops-kcna-jp-kcsa-cka-jp-ckad-jp-cks-jp-pca-otca-ica-tf-aws-saa-dea-snowpro-dbde
+# study-cert-k8s-dwh-mlops
