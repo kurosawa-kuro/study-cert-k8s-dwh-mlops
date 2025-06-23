@@ -1,12 +1,12 @@
 
 ### KCNA 用（合計 2〜4 時間）
 
-|ラボ|目安|メモ|
-|---|---|---|
-|**1. Kind／Minikube で 1 ノード起動**|30 min|`kind create cluster` / `minikube start`|
-|**2. Pod → Deployment → Service**|45 min|`kubectl run nginx --image=nginx` → Deployment化→ ClusterIPで curl|
-|**3. コンテナレジストリ概念**|30 min|`docker pull` とイメージレイヤを図で確認|
-|**4. CNCF Landscape 俯瞰**|30 min|Lens など GUI で各リソースを眺める|
+| ラボ                                | 目安     | メモ                                                               |
+| --------------------------------- | ------ | ---------------------------------------------------------------- |
+| **1. Kind／Minikube で 1 ノード起動**    | 30 min | `kind create cluster` / `minikube start`                         |
+| **2. Pod → Deployment → Service** | 45 min | `kubectl run nginx --image=nginx` → Deployment化→ ClusterIPで curl |
+| **3. コンテナレジストリ概念**                | 30 min | `docker pull` とイメージレイヤを図で確認                                      |
+| **4. CNCF Landscape 俯瞰**          | 30 min | Lens など GUI で各リソースを眺める                                           |
 
 > ここまでで **「オブジェクト名と役割」+「宣言的に動く」** を体感できる。
 

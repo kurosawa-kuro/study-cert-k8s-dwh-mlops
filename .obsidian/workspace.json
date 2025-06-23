@@ -8,49 +8,20 @@
         "type": "tabs",
         "children": [
           {
-            "id": "db2682e9fed0431d",
-            "type": "leaf",
-            "state": {
-              "type": "markdown",
-              "state": {
-                "file": "KCNA-JP/Kubernetes and Cloud Native Associate（KCNA）向けに特化して視聴すべき章.md",
-                "mode": "source",
-                "source": false
-              },
-              "icon": "lucide-file",
-              "title": "Kubernetes and Cloud Native Associate（KCNA）向けに特化して視聴すべき章"
-            }
-          },
-          {
             "id": "d34478545a484510",
             "type": "leaf",
             "state": {
               "type": "markdown",
               "state": {
-                "file": "KCNA-JP/Kubernetes and Cloud Native Associate（KCNA）向けに特化して視聴すべき章.md",
+                "file": "KCNA-JP/KCNA_最小ハンズオンメニュー.md",
                 "mode": "source",
                 "source": false
               },
               "icon": "lucide-file",
-              "title": "Kubernetes and Cloud Native Associate（KCNA）向けに特化して視聴すべき章"
-            }
-          },
-          {
-            "id": "ba929590d919d0fe",
-            "type": "leaf",
-            "state": {
-              "type": "markdown",
-              "state": {
-                "file": "無題のファイル.md",
-                "mode": "source",
-                "source": false
-              },
-              "icon": "lucide-file",
-              "title": "無題のファイル"
+              "title": "KCNA_最小ハンズオンメニュー"
             }
           }
-        ],
-        "currentTab": 2
+        ]
       }
     ],
     "direction": "vertical"
@@ -197,10 +168,28 @@
       "command-palette:コマンドパレットを開く": false
     }
   },
-  "active": "6bd449b8d9795efb",
+  "active": "d34478545a484510",
   "lastOpenFiles": [
-    "dbt Certified Developer/日本語で学べる” 主な教材・情報源まとめ.md",
+    "KCNA-JP/KCNA_不足トピック_補完方法.md",
+    "docs/★Udemy講座_知識穴埋め最適章_一覧.md",
+    "dbt Certified Developer/dbt_日本語教材_情報源まとめ.md",
     "README.md",
+    "docs/アソシエイト系_学習教材一覧.md",
+    "docs/アソシエイト系_資格一覧.md",
+    "KCSA/学習ガイド/03_Cluster Hardening 基礎.md",
+    "無題のファイル.md",
+    "学習メモ・雑記.md",
+    "docs/Kubernetes試験_ドメイン早見シート.md",
+    "docs/KCNA_CKA_ドメイン対比シート_2025-06.md",
+    "docs/CKAD経験者向け_KCNA追加学習テーマ.md",
+    "data-pipiline/Databricks_Snowflake_dbt_パイプライン構成.md",
+    "KCSA/KCSA対策_直結章_抜粋.md",
+    "KCSA/KCSA_最小ハンズオンメニュー.md",
+    "KCSA/Istio講座_KC系対策評価.md",
+    "KCNA-JP/KCNA特化_視聴すべき章.md",
+    "KCNA-JP/KCNA対策_直結章_抜粋.md",
+    "KCNA-JP/KCNA_最小ハンズオンメニュー.md",
+    "dbt Certified Developer/日本語で学べる” 主な教材・情報源まとめ.md",
     "dbt Certified Developer",
     "KCNA-JP/KCNA-JP 追加学習ガイド/02_コンテナ & OCI 基礎.md",
     "KCNA-JP/KCNA-JP 追加学習ガイド/03_CNCF Landscape の全体俯瞰.md",
@@ -208,26 +197,8 @@
     "KCNA-JP/★購入済み 8 講座から「KCNA対策に直結する章」の抜粋.md",
     "docs/★購入済みの Udemy 日本語講座の中で、そのドメインの  知識の穴埋め  に最適な コース名と該当章（セクション）.md",
     "KCNA-JP/KCNA-JP 追加学習ガイド/06_4 C’s セキュリティモデル.md",
-    "CKS/日本語教材/CKS対策の日本語教材.md",
-    "無題のファイル.md",
-    "KCNA-JP/README.md",
-    "KCSA/★購入済み 8 講座から「KCSA対策に直結する章」の抜粋.md",
     "CKS/日本語教材",
     "CKS",
-    "KCNA-JP/Kubernetes and Cloud Native Associate（KCNA）向けに特化して視聴すべき章.md",
-    "KCSA/「Istio Service Mesh Masterclass + AWS EKS」講座は KC 系対策に“重い”か.md",
-    "KCNA-JP/不足しがちなトピックと補完方法.md",
-    "KCSA/学習ガイド/03_Cluster Hardening 基礎.md",
-    "KCSA/学習ガイド/02_クラウド基盤ハードニング.md",
-    "KCNA-JP/具体的な「最小ハンズオン」メニュー KCNA.md",
-    "data-pipiline/Databricks Snowflake dbt パイプ構成ドキュメント.md",
-    "data-pipiline",
-    "KCNA-JP/KCNA-JP 追加学習ガイド/07_ネットワーキング & CNI 概要.md",
-    "KCNA-JP/KCNA-JP 追加学習ガイド/05_GitOps & CI CD 基礎.md",
-    "KCNA-JP/KCNA-JP 追加学習ガイド/04_Observability 三本柱.md",
-    "KCNA-JP/KCNA-JP 追加学習ガイド/08_ストレージ & CSI 概要.md",
-    "KCNA-JP/KCNA-JP 追加学習ガイド/09_Kubernetes コミュニティ バージョン管理.md",
-    "KCSA/具体的な「最小ハンズオン」メニュー KCSA.md",
-    "KCSA/README.md"
+    "data-pipiline"
   ]
 }
