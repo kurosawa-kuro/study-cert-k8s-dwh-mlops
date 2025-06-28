@@ -17,12 +17,24 @@ reset-light:
 	MINIKUBE_DISK_SIZE=15000 \
 	./reset-hard.sh
 
-# 高負荷用リセット（最大リソース設定）
+# 高スペック用リセット（高性能設定）
 reset-heavy:
-	MINIKUBE_CPUS=12 \
-	MINIKUBE_MEMORY=16000 \
-	MINIKUBE_DISK_SIZE=30000 \
+	MINIKUBE_CPUS=16 \
+	MINIKUBE_MEMORY=24000 \
+	MINIKUBE_DISK_SIZE=50000 \
 	./reset-hard.sh --host-expose --export-windows
+
+# 超高スペック用リセット（最大性能設定）
+reset-ultra:
+	MINIKUBE_CPUS=24 \
+	MINIKUBE_MEMORY=32000 \
+	MINIKUBE_DISK_SIZE=80000 \
+	./reset-hard.sh --host-expose --export-windows
+
+# 高スペック環境最適化
+optimize-highspec:
+	chmod +x ./optimize-highspec.sh
+	./optimize-highspec.sh
 
 reset-soft:
 	./reset-soft.sh
@@ -44,8 +56,10 @@ help:
 	@echo "Available commands:"
 	@echo "  make reset-hard    - 最適化設定で環境をリセット"
 	@echo "  make reset-light   - 最小リソース設定で環境をリセット"
-	@echo "  make reset-heavy   - 最大リソース設定で環境をリセット"
+	@echo "  make reset-heavy   - 高スペック設定で環境をリセット"
+	@echo "  make reset-ultra   - 超高スペック設定で環境をリセット"
 	@echo "  make reset-soft    - ソフトリセット（既存設定維持）"
+	@echo "  make optimize-highspec - 高スペック環境の最適化"
 	@echo "  make ingress       - Ingress Controller をインストール"
 	@echo "  make cache-enable  - Minikube イメージキャッシュを有効化"
 	@echo "  make cache-add     - よく使うイメージをキャッシュに追加"
