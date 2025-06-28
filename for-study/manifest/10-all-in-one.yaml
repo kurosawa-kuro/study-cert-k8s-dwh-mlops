@@ -1,0 +1,353 @@
+# ========================================
+# Express App Kubernetes Manifests
+# 学習用アプリケーション - 全マニフェスト統合版
+# ========================================
+
+---
+# 1. Namespace
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: express-app
+  labels:
+    name: express-app
+    purpose: learning
+
+---
+# 2. ServiceAccount
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: express-sa
+  namespace: express-app
+  labels:
+    app: express
+
+---
+# 3. RBAC - Role
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: express-read-config
+  namespace: express-app
+  labels:
+    app: express
+rules:
+- apiGroups: [""]
+  resources: ["configmaps", "secrets"]
+  verbs: ["get", "list"]
+
+---
+# 4. RBAC - RoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: express-read-config-bind
+  namespace: express-app
+  labels:
+    app: express
+subjects:
+- kind: ServiceAccount
+  name: express-sa
+  namespace: express-app
+roleRef:
+  kind: Role
+  name: express-read-config
+  apiGroup: rbac.authorization.k8s.io
+
+---
+# 5. ConfigMap
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: express-config
+  namespace: express-app
+  labels:
+    app: express
+data:
+  APP_GREETING: "Hello from Express!"
+  NODE_ENV: "production"
+  PORT: "8000"
+
+---
+# 6. Secret
+apiVersion: v1
+kind: Secret
+metadata:
+  name: express-secret
+  namespace: express-app
+  labels:
+    app: express
+type: Opaque
+stringData:
+  API_KEY: "SuperSecretValue"
+  DATABASE_URL: "postgresql://user:password@localhost:5432/express_db"
+
+---
+# 7. Deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: express-deploy
+  namespace: express-app
+  labels:
+    app: express
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: express
+  template:
+    metadata:
+      labels:
+        app: express
+    spec:
+      serviceAccountName: express-sa
+      securityContext:
+        runAsNonRoot: true
+        fsGroup: 1001
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+      - name: app
+        image: api-nodejs-k8s:latest
+        imagePullPolicy: IfNotPresent
+        ports:
+        - name: http
+          containerPort: 8000
+          protocol: TCP
+        envFrom:
+        - configMapRef:
+            name: express-config
+        - secretRef:
+            name: express-secret
+        resources:
+          requests:
+            cpu: "200m"
+            memory: "256Mi"
+          limits:
+            cpu: "500m"
+            memory: "512Mi"
+        securityContext:
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+          runAsNonRoot: true
+          runAsUser: 1001
+          runAsGroup: 1001
+          capabilities:
+            drop: ["ALL"]
+        livenessProbe:
+          httpGet:
+            path: /healthz
+            port: 8000
+          initialDelaySeconds: 30
+          periodSeconds: 20
+          timeoutSeconds: 5
+          failureThreshold: 3
+        readinessProbe:
+          httpGet:
+            path: /readyz
+            port: 8000
+          initialDelaySeconds: 5
+          periodSeconds: 10
+          timeoutSeconds: 2
+          failureThreshold: 3
+        startupProbe:
+          httpGet:
+            path: /healthz
+            port: 8000
+          initialDelaySeconds: 10
+          periodSeconds: 5
+          timeoutSeconds: 3
+          failureThreshold: 30
+
+---
+# 8. Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: express-svc
+  namespace: express-app
+  labels:
+    app: express
+spec:
+  type: ClusterIP
+  selector:
+    app: express
+  ports:
+  - name: http
+    port: 80
+    targetPort: 8000
+    protocol: TCP
+
+---
+# 9. HorizontalPodAutoscaler
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: express-hpa
+  namespace: express-app
+  labels:
+    app: express
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: express-deploy
+  minReplicas: 1
+  maxReplicas: 5
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: 50
+  - type: Resource
+    resource:
+      name: memory
+      target:
+        type: Utilization
+        averageUtilization: 80
+  behavior:
+    scaleDown:
+      stabilizationWindowSeconds: 300
+      policies:
+      - type: Percent
+        value: 10
+        periodSeconds: 60
+    scaleUp:
+      stabilizationWindowSeconds: 60
+      policies:
+      - type: Percent
+        value: 100
+        periodSeconds: 15
+
+---
+# 10. PodDisruptionBudget
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: express-pdb
+  namespace: express-app
+  labels:
+    app: express
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels:
+      app: express
+
+---
+# 11. NetworkPolicy - Default Deny
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: express-default-deny
+  namespace: express-app
+  labels:
+    app: express
+spec:
+  podSelector: {}
+  policyTypes:
+  - Ingress
+  - Egress
+
+---
+# 12. NetworkPolicy - Egress HTTPS
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: express-egress-https
+  namespace: express-app
+  labels:
+    app: express
+spec:
+  podSelector:
+    matchLabels:
+      app: express
+  policyTypes:
+  - Egress
+  egress:
+  - to:
+    - ipBlock:
+        cidr: 0.0.0.0/0
+    ports:
+    - protocol: TCP
+      port: 443
+    - protocol: TCP
+      port: 80
+
+---
+# 13. NetworkPolicy - Ingress Allow
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: express-ingress-allow
+  namespace: express-app
+  labels:
+    app: express
+spec:
+  podSelector:
+    matchLabels:
+      app: express
+  policyTypes:
+  - Ingress
+  ingress:
+  - from:
+    - namespaceSelector:
+        matchLabels:
+          name: express-app
+    ports:
+    - protocol: TCP
+      port: 8000
+
+---
+# 14. ResourceQuota
+apiVersion: v1
+kind: ResourceQuota
+metadata:
+  name: express-quota
+  namespace: express-app
+  labels:
+    app: express
+spec:
+  hard:
+    requests.cpu: "2"
+    requests.memory: 2Gi
+    limits.cpu: "4"
+    limits.memory: 4Gi
+    pods: "10"
+    services: "5"
+    configmaps: "10"
+    secrets: "10"
+    persistentvolumeclaims: "5"
+
+---
+# 15. LimitRange
+apiVersion: v1
+kind: LimitRange
+metadata:
+  name: express-limits
+  namespace: express-app
+  labels:
+    app: express
+spec:
+  limits:
+  - default:
+      cpu: "500m"
+      memory: "512Mi"
+    defaultRequest:
+      cpu: "200m"
+      memory: "256Mi"
+    max:
+      cpu: "1000m"
+      memory: 1Gi
+    min:
+      cpu: "100m"
+      memory: "128Mi"
+    type: Container
+  - max:
+      cpu: "2000m"
+      memory: 2Gi
+    type: Pod 

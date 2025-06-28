@@ -1,0 +1,23 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: express-config
+  namespace: express-app
+  labels:
+    app: express
+data:
+  APP_GREETING: "Hello from Express!"
+  NODE_ENV: "production"
+  PORT: "8000"
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: express-secret
+  namespace: express-app
+  labels:
+    app: express
+type: Opaque
+stringData:
+  API_KEY: "SuperSecretValue"   # 運用では SealedSecret や KMS + External Secrets を推奨
+  DATABASE_URL: "postgresql://user:password@localhost:5432/express_db" 

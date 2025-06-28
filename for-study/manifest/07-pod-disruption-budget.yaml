@@ -1,0 +1,12 @@
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: express-pdb
+  namespace: express-app
+  labels:
+    app: express
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels:
+      app: express 

@@ -1,0 +1,60 @@
+# デフォルト拒否ポリシー（すべてのトラフィックを拒否）
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: express-default-deny
+  namespace: express-app
+  labels:
+    app: express
+spec:
+  podSelector: {}
+  policyTypes:
+  - Ingress
+  - Egress
+---
+# HTTPS アウトバウンド許可ポリシー
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: express-egress-https
+  namespace: express-app
+  labels:
+    app: express
+spec:
+  podSelector:
+    matchLabels:
+      app: express
+  policyTypes:
+  - Egress
+  egress:
+  - to:
+    - ipBlock:
+        cidr: 0.0.0.0/0
+    ports:
+    - protocol: TCP
+      port: 443
+    - protocol: TCP
+      port: 80
+---
+# イングレス許可ポリシー（Serviceからのトラフィックを許可）
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: express-ingress-allow
+  namespace: express-app
+  labels:
+    app: express
+spec:
+  podSelector:
+    matchLabels:
+      app: express
+  policyTypes:
+  - Ingress
+  ingress:
+  - from:
+    - namespaceSelector:
+        matchLabels:
+          name: express-app
+    ports:
+    - protocol: TCP
+      port: 8000 
