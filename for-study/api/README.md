@@ -1,6 +1,6 @@
 # api-nodejs-k8s-8000
 
-Express.jsを使用したシンプルなAPIサーバーです。
+Express.jsを使用したシンプルなAPIサーバーです。Kubernetes環境でのデプロイに対応しています。
 
 ## 機能
 
@@ -9,6 +9,8 @@ Express.jsを使用したシンプルなAPIサーバーです。
 - 設定情報エンドポイント (`/config`)
 - Prometheusメトリクスエンドポイント (`/metrics`)
 - 環境変数による設定
+- Kubernetes対応（マルチステージDockerビルド）
+- セキュリティ強化（非rootユーザー、RBAC、NetworkPolicy）
 
 ## インストール
 
@@ -27,6 +29,128 @@ npm run dev
 ```bash
 npm start
 ```
+
+## Kubernetes デプロイ
+
+### 前提条件
+
+- Minikube
+- Docker
+- kubectl
+- Node.js 18+
+
+### Minikube環境でのデプロイ
+
+#### 1. Minikubeの起動
+
+```bash
+minikube start --driver=docker
+```
+
+#### 2. 完全デプロイスクリプトの実行
+
+```bash
+./deploy-minikube-complete.sh
+```
+
+このスクリプトは以下を自動実行します：
+- Minikubeの状態確認
+- Docker環境の設定
+- Dockerイメージのビルド（権限問題回避済み）
+- Kubernetesマニフェストの適用
+- デプロイ状態の確認
+- ヘルスチェック
+
+#### 3. クリーンアップ
+
+```bash
+./deploy-minikube-complete.sh --clean
+```
+
+### アプリケーションへのアクセス
+
+#### Port-forwardを使用したアクセス
+
+```bash
+kubectl port-forward svc/express-svc 8080:80 -n express-app
+```
+
+ブラウザで `http://localhost:8080` にアクセス
+
+#### NodePort Serviceを使用したアクセス
+
+```bash
+kubectl port-forward svc/express-svc-nodeport 8080:80 -n express-app
+```
+
+または
+
+```bash
+minikube service express-svc-nodeport -n express-app
+```
+
+### ヘルスチェック
+
+```bash
+# ヘルスチェック
+curl http://localhost:8080/healthz
+
+# レディネスチェック
+curl http://localhost:8080/readyz
+
+# メトリクス
+curl http://localhost:8080/metrics
+
+# 設定情報
+curl http://localhost:8080/config
+```
+
+### デプロイ状態の確認
+
+```bash
+# Podの状態確認
+kubectl get pods -n express-app
+
+# Serviceの状態確認
+kubectl get svc -n express-app
+
+# 全体的なリソース状態
+kubectl get all -n express-app
+
+# ログ確認
+kubectl logs -f deployment/express-deploy -n express-app
+```
+
+## 最近の修正内容
+
+### ✅ 解決済みの問題
+
+1. **Ingress対応の削除**
+   - 複雑なIngress設定を削除
+   - NodePort ServiceとPort-forwardによるシンプルなアクセス方法に変更
+
+2. **Docker buildx権限問題の解決**
+   - `DOCKER_BUILDKIT=0`で権限エラーを回避
+   - 通常のdocker buildを使用
+
+3. **npm依存関係の問題解決**
+   - package-lock.jsonの再生成
+   - `caniuse-lite`パッケージの競合を解決
+
+4. **Minikubeネットワーク問題の解決**
+   - Service IP割り当てエラーの解決
+   - クラスターの再作成によるネットワーク設定のリセット
+
+5. **マニフェストファイルの修正**
+   - Ingress定義の完全削除
+   - シンプルなService構成に変更
+
+### 🔧 技術的改善
+
+- **セキュリティ強化**: 非rootユーザー、RBAC、NetworkPolicy
+- **軽量化**: Ingressコントローラーの削除
+- **安定性向上**: 権限問題の回避
+- **再現性向上**: 自動化されたデプロイスクリプト
 
 ## テスト
 
@@ -157,6 +281,34 @@ describe('New Feature Tests', () => {
 
 ## トラブルシューティング
 
+### Kubernetesデプロイの問題
+
+#### Service IP割り当てエラー
+```bash
+# Minikubeを再起動
+minikube stop
+minikube start --driver=docker
+
+# または完全に削除して再作成
+minikube delete
+minikube start --driver=docker
+```
+
+#### Docker buildx権限エラー
+```bash
+# スクリプト内で自動的に回避されます
+export DOCKER_BUILDKIT=0
+```
+
+#### Podが起動しない場合
+```bash
+# Podの詳細を確認
+kubectl describe pod <pod-name> -n express-app
+
+# ログを確認
+kubectl logs <pod-name> -n express-app
+```
+
 ### テストが失敗する場合
 
 1. 依存関係が正しくインストールされているか確認：
@@ -179,4 +331,21 @@ describe('New Feature Tests', () => {
 
 1. ポートが使用中でないか確認
 2. 環境変数が正しく設定されているか確認
-3. 依存関係がインストールされているか確認 
+3. 依存関係がインストールされているか確認
+
+## 便利なコマンド
+
+```bash
+# 状態確認
+kubectl get all -n express-app
+
+# イベント確認
+kubectl get events -n express-app --sort-by='.lastTimestamp'
+
+# リソース使用量
+kubectl top pods -n express-app
+
+# クリーンアップ
+kubectl delete namespace express-app
+docker rmi api-nodejs-k8s:latest
+``` 
