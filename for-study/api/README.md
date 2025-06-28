@@ -8,9 +8,77 @@ Express.jsを使用したシンプルなAPIサーバーです。Kubernetes環境
 - レディネスチェックエンドポイント (`/readyz`)
 - 設定情報エンドポイント (`/config`)
 - Prometheusメトリクスエンドポイント (`/metrics`)
+- **Swagger API ドキュメント** (`/api-docs`)
+- ユーザー管理API (`/api/users`)
 - 環境変数による設定
 - Kubernetes対応（マルチステージDockerビルド）
 - セキュリティ強化（非rootユーザー、RBAC、NetworkPolicy）
+
+## API ドキュメント
+
+### Swagger UI
+
+アプリケーション起動後、以下のURLでSwagger UIにアクセスできます：
+
+```
+http://localhost:8000/api-docs
+```
+
+### 利用可能なエンドポイント
+
+#### 基本エンドポイント
+- `GET /` - アプリケーションの挨拶メッセージ
+- `GET /healthz` - ヘルスチェック
+- `GET /readyz` - レディネスチェック
+- `GET /config` - アプリケーション設定（APIキー認証必要）
+- `GET /metrics` - Prometheusメトリクス
+
+#### ユーザー管理API
+- `GET /api/users` - ユーザー一覧取得
+- `POST /api/users` - 新規ユーザー作成
+- `GET /api/users/{id}` - ユーザー詳細取得
+- `PUT /api/users/{id}` - ユーザー情報更新
+- `DELETE /api/users/{id}` - ユーザー削除
+
+### 認証
+
+一部のエンドポイントでは、APIキー認証が必要です：
+
+```bash
+# APIキーをヘッダーに設定
+curl -H "X-API-Key: your-api-key" http://localhost:8000/config
+```
+
+### 使用例
+
+```bash
+# ユーザー一覧を取得
+curl http://localhost:8000/api/users
+
+# 新規ユーザーを作成
+curl -X POST http://localhost:8000/api/users \
+  -H "Content-Type: application/json" \
+  -d '{
+    "email": "newuser@example.com",
+    "name": "New User",
+    "password": "password123",
+    "role": "user"
+  }'
+
+# 特定のユーザー情報を取得
+curl http://localhost:8000/api/users/user-1
+
+# ユーザー情報を更新
+curl -X PUT http://localhost:8000/api/users/user-1 \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "Updated User",
+    "role": "admin"
+  }'
+
+# ユーザーを削除
+curl -X DELETE http://localhost:8000/api/users/user-1
+```
 
 ## インストール
 
