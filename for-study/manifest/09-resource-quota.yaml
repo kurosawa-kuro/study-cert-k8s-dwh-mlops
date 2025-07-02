@@ -1,0 +1,50 @@
+# Resource Quota
+apiVersion: v1
+kind: ResourceQuota
+metadata:
+  name: express-quota
+  namespace: express-app
+  labels:
+    app: express
+spec:
+  hard:
+    requests.cpu: "2"
+    requests.memory: 2Gi
+    limits.cpu: "4"
+    limits.memory: 4Gi
+    pods: "10"
+    services: "5"
+    configmaps: "10"
+    secrets: "10"
+    persistentvolumeclaims: "5"
+---
+# Limit Range
+apiVersion: v1
+kind: LimitRange
+metadata:
+  name: express-limits
+  namespace: express-app
+  labels:
+    app: express
+spec:
+  limits:
+  - default:
+      cpu: "500m"
+      memory: "512Mi"
+    defaultRequest:
+      cpu: "200m"
+      memory: "256Mi"
+    max:
+      cpu: "1000m"
+      memory: 1Gi
+    min:
+      cpu: "100m"
+      memory: "128Mi"
+    type: Container
+  - max:
+      cpu: "2000m"
+      memory: 2Gi
+    min:
+      cpu: "200m"
+      memory: "256Mi"
+    type: Pod 

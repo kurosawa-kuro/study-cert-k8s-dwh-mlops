@@ -7,7 +7,22 @@ KEEP_NS_REGEX='^(kube-|default$|local-path-storage$)'   # ← default は残す
 log(){ printf '\033[32m[INFO]\033[0m %s\n' "$*"; }
 
 ###############################################################################
-# 1) default“以外”のユーザー NS を削除
+# 0) Minikube の状態チェックと起動
+###############################################################################
+log "▶ checking minikube status..."
+if ! minikube status --format='{{.Host}}' >/dev/null 2>&1; then
+  log "▶ minikube not running, starting..."
+  minikube start
+else
+  log "▶ minikube is already running"
+fi
+
+# kubectl の設定を更新（バージョン警告を回避）
+log "▶ updating kubectl context..."
+minikube kubectl -- get nodes >/dev/null 2>&1 || true
+
+###############################################################################
+# 1) default"以外"のユーザー NS を削除
 ###############################################################################
 log "▶ wipe non-system, non-default namespaces..."
 for ns in $(kubectl get ns -o jsonpath='{range .items[*]}{.metadata.name}{"\n"}{end}'); do
@@ -29,6 +44,6 @@ log "▶ delete cluster-scoped *user* resources..."
 KEEP_CLUSTER='^(nodes?|namespaces?|customresourcedefinitions?|storageclasses?|csidrivers?|csinodes?|clusterrolebindings?|clusterroles?|apiservices?|flowschemas?|prioritylevelconfigurations?|componentstatuses?)(\.|$)'
 kubectl api-resources --verbs=list --namespaced=false -o name \
 | grep -Ev "$KEEP_CLUSTER" \
-| xargs -r -n1 kubectl delete --all --wait=false --ignore-not-found
+| xargs -r -n1 kubectl delete --all --wait=false --ignore-not-found 2>/dev/null || true
 
 log "✅ reset-soft completed (≈10 s)"

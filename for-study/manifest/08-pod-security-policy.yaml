@@ -1,0 +1,50 @@
+# Pod Security Standards (Kubernetes 1.21以降)
+apiVersion: v1
+kind: Pod
+metadata:
+  name: express-pod-security-example
+  namespace: express-app
+  labels:
+    app: express
+spec:
+  securityContext:
+    runAsNonRoot: true
+    runAsUser: 1001
+    runAsGroup: 1001
+    fsGroup: 1001
+    seccompProfile:
+      type: RuntimeDefault
+  containers:
+  - name: app
+    image: api-nodejs-k8s:latest
+    resources:
+      requests:
+        memory: "64Mi"
+        cpu: "50m"
+      limits:
+        memory: "128Mi"
+        cpu: "100m"
+    securityContext:
+      allowPrivilegeEscalation: false
+      readOnlyRootFilesystem: true
+      runAsNonRoot: true
+      runAsUser: 1001
+      runAsGroup: 1001
+      capabilities:
+        drop: ["ALL"]
+---
+# Pod Security Admission (Kubernetes 1.25以降)
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: express-app-secure
+  labels:
+    name: express-app-secure
+    purpose: learning
+  annotations:
+    pod-security.kubernetes.io/enforce: "restricted"
+    pod-security.kubernetes.io/enforce-version: "latest"
+    pod-security.kubernetes.io/audit: "restricted"
+    pod-security.kubernetes.io/audit-version: "latest"
+    pod-security.kubernetes.io/warn: "restricted"
+    pod-security.kubernetes.io/warn-version: "latest" 
