@@ -3,80 +3,6 @@ cd /home/wsl/dev/k8s-ckad/wsl/test/
 cd ../script
 make reset-heavy
 
-alias k=kubectl
-export do="--dry-run=client -o yaml"
-alias kn='kubectl config set-context --current --namespace '
-alias ke='k explain'
-alias kgp='k get po'
-alias kaf='k apply -f'
-
-この大量の問題群を精査して、  
-**CKAD本番直前2日間で「先に完璧にすべき問題」と「後回しにしていい問題」**を明確に振り分けます。
-
----
-
-## ✅ 判断基準
-
-| 分類 | 意図 |
-|------|------|
-| 🟩 先に完璧にすべき | 基本リソースで確実に満点を取れる／出題頻度が高い／構造がシンプル |
-| 🟨 後回しだが拾えるなら拾う | 応用だが得点源になりうる／理解しやすければやる価値あり |
-| 🟥 捨ててよい or 最後に一気見 | 出題頻度が低い／重い／時間を食いやすい or CKAD範囲外（helmなど） |
-
----
-
-## ✅ 各問題の分類とコメント
-
-| 問題番号 | 優先 | 技術内容 | コメント |
-|----------|------|-----------|----------|
-| 1        | 🟩   | `Podログ + ラベルselector` | 基本操作・早く処理できる、完璧にすべき |
-| 2        | 🟩   | `Secret更新（envFrom）` | CKAD頻出。修正構文に慣れるべき |
-| 3        | 🟩   | `ConfigMap + volumeMount` | 必須分野。テンプレ再現に自信を持ちたい |
-| 4        | 🟨   | `マルチコンテナ + ConfigMapマウント` | 応用系、余裕があればやる |
-| 5        | 🟩   | `RBACでPod一覧権限修正` | 出題数少なめだが、読解力確認に良い。部分点狙いでも価値あり |
-| 6        | 🟥   | `NetworkPolicy` | 出たら拾う。試験では最小構文を暗記だけしておく戦略でOK |
-| 7        | 🟨   | `Resource制限（LimitRange）` | 出題数少ないが、構造は軽い。余裕があれば習得 |
-| 8        | 🟨   | `CronJob構文・Job生成` | 最小構文だけ覚えれば得点源、深追いは不要 |
-| 9        | 🟨   | `マルチコンテナ + emptyDir共有` | 応用系だがvolume理解の確認に最適。演習価値あり |
-| 10       | 🟨   | `SecurityContext` | 余裕があれば演習。試験頻度は低め |
-| 11       | 🟥   | `Ingress` | 構文重く、クラスタ依存。最小構文だけ暗記戦略で十分 |
-| 12       | 🟨   | `Canary Deployment` | CKADっぽくないが設問がわかりやすいなら拾う |
-| 13       | 🟩   | `Service selector修正` | めちゃくちゃ頻出。完璧にしておくべき |
-| 14       | 🟩   | `RollingUpdate戦略` | 出題多い。`maxSurge`と`maxUnavailable`に慣れるべき |
-| 15       | 🟩   | `Liveness/Readiness Probe` | 超頻出。httpGet固定で書けるようにする |
-| 16       | 🟥   | `Helm` | CKAD対象外。完全スキップでOK |
-| 17       | 🟩   | `PVC Pending → PV条件不一致修正` | PVC/PVマッチングはよく出る。必ずできるように |
-| 18       | 🟩   | `Podエラー原因修正（イメージ・構文など）` | 出題頻度高、現場力も試される、完璧にすべき |
-
----
-
-## 🎯 最優先で「完璧」にすべき問題（復習・再現順）
-
-1. 問題1（ログ・Pod選択）
-2. 問題2（Secretの修正）
-3. 問題3（ConfigMapマウント）
-4. 問題5（RBACエラー調査）
-5. 問題13（Service接続）
-6. 問題14（RollingUpdate）
-7. 問題15（Probes）
-8. 問題17（PVC→PV）
-9. 問題18（Pod起動失敗の調査）
-
-👉 **これだけで6〜8割の得点ゾーンをカバーできます。**
-
----
-
-## 🔥 学習効率を上げる実行例（直前2日）
-
-| 時間帯 | タスク |
-|--------|--------|
-| 午前   | 問題1,2,3,13（手癖を固める） |
-| 午後   | 問題14,15,17,18（中核技術に集中） |
-| 夜     | 問題5（RBAC読解）、3問通し模試 |
-
----
-
-必要であれば、「この優先順で並んだYAML再現セット（+構造確認チェックリスト）」も作成できます。欲しいですか？
 
 =========================================================
 問題1
@@ -88,6 +14,155 @@ cd /home/wsl/dev/k8s-ckad/wsl/test/
 次のコマンドを実行して、問題に必要なリソースを作成して下さい。
 
 kubectl apply -f https://raw.githubusercontent.com/nz-cloud-udemy/ckad-questions/main/practice-questions/1/resources.yaml
+
+```
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: filter
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  labels:
+    app: pod-1
+  name: pod-1
+  namespace: filter
+spec:
+  containers:
+  - image: busybox
+    name: pod-1
+    command: ["sh", "-c", "echo 'Hello from pod-1'; sleep 3600"]
+  restartPolicy: Always
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  labels:
+    app: pod-2
+  name: pod-2
+  namespace: filter
+spec:
+  containers:
+  - image: busybox
+    name: pod-2
+    command: ["sh", "-c", "echo 'Hello from pod-2'; sleep 3600"]
+  restartPolicy: Always
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  labels:
+    app: pod-3
+  name: pod-3
+  namespace: filter
+spec:
+  containers:
+  - image: busybox
+    name: pod-3
+    command: ["sh", "-c", "echo 'Hello from pod-3'; sleep 3600"]
+  restartPolicy: Always
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  labels:
+    app: pod-4
+  name: pod-4
+  namespace: filter
+spec:
+  containers:
+  - image: busybox
+    name: pod-4
+    command: ["sh", "-c", "echo 'Hello from pod-4'; sleep 3600"]
+  restartPolicy: Always
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  labels:
+    app: pod-5
+  name: pod-5
+  namespace: filter
+spec:
+  containers:
+  - image: busybox
+    name: pod-5
+    command: ["sh", "-c", "echo 'Hello from pod-5'; sleep 3600"]
+  restartPolicy: Always
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  labels:
+    app: pod-6
+  name: pod-6
+  namespace: filter
+spec:
+  containers:
+  - image: busybox
+    name: pod-6
+    command: ["sh", "-c", "echo 'Hello from pod-6'; sleep 3600"]
+  restartPolicy: Always
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  labels:
+    app: pod-7
+  name: pod-7
+  namespace: filter
+spec:
+  containers:
+  - image: busybox
+    name: pod-7
+    command: ["sh", "-c", "echo 'Hello from pod-7'; sleep 3600"]
+  restartPolicy: Always
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  labels:
+    app: pod-8
+  name: pod-8
+  namespace: filter
+spec:
+  containers:
+  - image: busybox
+    name: pod-8
+    command: ["sh", "-c", "echo 'Hello from pod-8'; sleep 3600"]
+  restartPolicy: Always
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  labels:
+    app: pod-9
+  name: pod-9
+  namespace: filter
+spec:
+  containers:
+  - image: busybox
+    name: pod-9
+    command: ["sh", "-c", "echo 'Hello from pod-9'; sleep 3600"]
+  restartPolicy: Always
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  labels:
+    app: pod-10
+  name: pod-10
+  namespace: filter
+spec:
+  containers:
+  - image: busybox
+    name: pod-10
+    command: ["sh", "-c", "echo 'Hello from pod-10'; sleep 3600"]
+  restartPolicy: Always
+---
+```
 
 問題
 filter名前空間では、pod-1からpod-10までの10個のPodが実行されています。それぞれのPodには、app: "Pod名"のラベルが付与されています。以下のラベルを持つPodのログを、pods.logに出力して下さい。
@@ -114,6 +189,46 @@ cd /home/wsl/dev/k8s-ckad/wsl/test/
 
 kubectl apply -f https://raw.githubusercontent.com/nz-cloud-udemy/ckad-questions/main/practice-questions/2/resources.yaml
 
+```
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: credential
+---
+apiVersion: v1
+data:
+  PASSWORD: bXktY3VycmVudC1wYXNzd29yZAo=
+  USERNAME: bXktdXNlcgo=
+kind: Secret
+metadata:
+  name: creds
+  namespace: credential
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: login
+  name: login
+  namespace: credential
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: login
+  template:
+    metadata:
+      labels:
+        app: login
+    spec:
+      containers:
+      - image: nginx:alpine
+        name: login
+        envFrom:
+        - secretRef:
+            name: creds
+```
 
 
 問題
@@ -152,13 +267,76 @@ minikube start --ports=32100:32100
 
 wget https://raw.githubusercontent.com/nz-cloud-udemy/ckad-questions/main/practice-questions/3/updated_index.html
 
+```
+new
+```
 
 
 2. 次のコマンドを実行して、問題に必要なリソースを作成して下さい。
 
 kubectl apply -f https://raw.githubusercontent.com/nz-cloud-udemy/ckad-questions/main/practice-questions/3/resources.yaml
 
-
+```
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: web
+---
+apiVersion: v1
+data:
+  index.html: |
+    old
+kind: ConfigMap
+metadata:
+  name: old-index-cm
+  namespace: web
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: my-web
+  name: my-web
+  namespace: web
+spec:
+  replicas: 5
+  selector:
+    matchLabels:
+      app: my-web
+  template:
+    metadata:
+      labels:
+        app: my-web
+    spec:
+      containers:
+      - image: nginx
+        name: nginx
+        volumeMounts:
+        - name: index
+          mountPath: /usr/share/nginx/html
+      volumes:
+      - name: index
+        configMap:
+          name: old-index-cm
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: my-web
+  name: my-svc
+  namespace: web
+spec:
+  ports:
+  - port: 80
+    protocol: TCP
+    targetPort: 80
+    nodePort: 32100
+  selector:
+    app: my-web
+  type: NodePort
+```
 
 問題
 
@@ -203,18 +381,124 @@ cd /home/wsl/dev/k8s-ckad/wsl/test/
 wget https://raw.githubusercontent.com/nz-cloud-udemy/ckad-questions/main/practice-questions/4/frontend.yaml
 
 
+```
+apiVersion: v1
+kind: Pod
+metadata:
+  name: frontend
+  namespace: ambassador
+spec:
+  containers:
+  - image: nginx:alpine
+    name: frontend
+    command: ["sh", "-c", "while true; do sleep 5; date && curl $SERVICE_NAME:8080 -m 2; done"]
+    env:
+    - name: SERVICE_NAME
+      value: "api-service"
+```
 
 2. wgetコマンドを実行して、次のURLからhaproxy.cfgファイルをダウンロードして下さい。
 
 wget https://raw.githubusercontent.com/nz-cloud-udemy/ckad-questions/main/practice-questions/4/haproxy.cfg
 
-
+```
+frontend api_client
+  bind *:8080
+  default_backend api_backend
+backend api_backend
+  server s1 api-service:9090
+```
 
 3. 次のコマンドを実行して、問題に必要なリソースを作成して下さい。
 
 kubectl apply -f https://raw.githubusercontent.com/nz-cloud-udemy/ckad-questions/main/practice-questions/4/resources.yaml
 
+```
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: ambassador
+spec: {}
+---
+apiVersion: v1
+data:
+  default.conf.template: |
+    server {
+        listen       80;
+        server_name  localhost;
 
+        location / {
+            root   /usr/share/nginx/html;
+            index  index.html index.htm;
+            try_files $uri /api/index.html;
+        }
+    }
+kind: ConfigMap
+metadata:
+  name: api-config
+  namespace: ambassador
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: api
+  namespace: ambassador
+  labels:
+    run: api
+spec:
+  initContainers:
+  - name: init-con
+    image: busybox
+    command: ['sh', '-c', 'echo "Hello from API!" > /tmp/content/index.html']
+    volumeMounts:
+    - name: content
+      mountPath: /tmp/content
+  containers:
+  - image: nginx:alpine
+    name: api
+    volumeMounts:
+    - name: content
+      mountPath: /usr/share/nginx/html/api
+    - name: conf
+      mountPath: /etc/nginx/templates
+  volumes:
+  - name: content
+    emptyDir: {}
+  - name: conf
+    configMap:
+      name: api-config
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    run: api
+  name: api-service
+  namespace: ambassador
+spec:
+  ports:
+  - port: 8080
+    protocol: TCP
+    targetPort: 80
+  selector:
+    run: api
+  type: ClusterIP
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: frontend
+  namespace: ambassador
+spec:
+  containers:
+  - image: nginx:alpine
+    name: frontend
+    command: ["sh", "-c", "while true; do sleep 5; date && curl $SERVICE_NAME:8080 -m 2; done"]
+    env:
+    - name: SERVICE_NAME
+      value: "api-service"
+```
 
 問題
 
@@ -262,7 +546,69 @@ cd /home/wsl/dev/k8s-ckad/wsl/test/
 
 kubectl apply -f https://raw.githubusercontent.com/nz-cloud-udemy/ckad-questions/main/practice-questions/5/resources.yaml
 
-
+```
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: service
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: pod-reader-sa
+  namespace: service
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  namespace: service
+  name: pod-reader
+rules:
+- apiGroups: [""]
+  resources: ["pods"]
+  verbs: ["get", "watch", "list"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  namespace: service
+  name: pod-reader-binding
+  namespace: service
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: pod-reader
+subjects:
+- kind: ServiceAccount
+  name: pod-reader-sa
+  namespace: service
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  creationTimestamp: null
+  labels:
+    app: pod-reader
+  name: pod-reader
+  namespace: service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: pod-reader
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        app: pod-reader
+    spec:
+      serviceAccount: default
+      containers:
+      - image: bitnami/kubectl
+        name: kubectl
+        command: ["sh", "-c", "while true; do kubectl get pods; sleep 5; done"]
+```
 
 問題
 
@@ -273,7 +619,6 @@ service名前空間で実行されるpod-reader Deploymentは、5秒ごとに"ku
 
 
 1. pod-reader Deploymentのログを確認し、エラーメッセージを調査して下さい。
-
 
 
 2. pod-reader Deploymentを修正し、エラーの原因となっている問題を解決して下さい。
@@ -320,6 +665,80 @@ cd /home/wsl/dev/k8s-ckad/wsl/test/
 
 kubectl apply -f https://raw.githubusercontent.com/nz-cloud-udemy/ckad-questions/main/practice-questions/6/resources.yaml
 
+```
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: network
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  namespace: network
+  name: web
+  labels:
+    app: web
+spec:
+  containers:
+  - image: nginx:alpine
+    name: web
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  namespace: network
+  name: api
+  labels:
+    role: api
+spec:
+  initContainers:
+  - name: init-con
+    image: busybox
+    command: ['sh', '-c', 'echo "Welcome to api!" > /tmp/content/index.html']
+    volumeMounts:
+    - name: content
+      mountPath: /tmp/content
+  volumes:
+  - name: content
+  containers:
+  - image: nginx:alpine
+    name: api
+    volumeMounts:
+    - name: content
+      mountPath: /usr/share/nginx/html
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  namespace: network
+  name: default-deny-ingress
+spec:
+  podSelector: {}
+  policyTypes:
+  - Ingress
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  namespace: network
+  name: api-netpol
+spec:
+  podSelector:
+    matchLabels:
+      role: api
+  policyTypes:
+  - Ingress
+  ingress:
+  - from:
+    - podSelector:
+        matchLabels:
+          role: backend
+    ports:
+    - protocol: TCP
+      port: 80
+---
+```
 
 
 問題
@@ -354,7 +773,25 @@ cd /home/wsl/dev/k8s-ckad/wsl/test/
 
 kubectl apply -f https://raw.githubusercontent.com/nz-cloud-udemy/ckad-questions/main/practice-questions/7/resources.yaml
 
-
+```
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: resource-management
+---
+apiVersion: v1
+kind: LimitRange
+metadata:
+  name: cpu-resource-constraint
+  namespace: resource-management
+spec:
+  limits:
+  - max:
+      cpu: 900m
+    type: Container
+---
+```
 
 問題
 
@@ -442,22 +879,98 @@ cd /home/wsl/dev/k8s-ckad/wsl/test/
 wget https://raw.githubusercontent.com/nz-cloud-udemy/ckad-questions/main/practice-questions/9/logger.yaml
 
 
+```
+apiVersion: v1
+kind: Pod
+metadata:
+  name: logger
+  namespace: adapter
+spec:
+  volumes:
+  - name: tmplog
+    emptyDir: {}
+  containers:
+  - name: logger
+    image: busybox
+    volumeMounts:
+    - name: tmplog
+      mountPath: /tmp/log
+    args:
+    - /bin/sh
+    - -c
+    - >
+      while true;
+      do
+        echo {\"dt\": \"$(date -u)\"} >> /tmp/log/input.log;
+        sleep 10;
+      done
+```
+
 
 2. 次のコマンドを実行して、問題に必要なリソースを作成して下さい。
 
 kubectl apply -f https://raw.githubusercontent.com/nz-cloud-udemy/ckad-questions/main/practice-questions/9/resources.yaml
 
 
+```
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: adapter
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: fluentd-config
+  namespace: adapter
+data:
+  fluent.conf: |
+    <source>
+      @type tail
+      path /tmp/log/input.log
+      <parse>
+        @type json
+      </parse>
+      tag logger.format1
+    </source>
+    <match logger.format1>
+      @type file
+      path /tmp/log/output
+    </match>
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: logger
+  namespace: adapter
+spec:
+  containers:
+  - name: logger
+    image: busybox
+    args:
+    - /bin/sh
+    - -c
+    - >
+      while true;
+      do
+        echo {\"dt\": \"$(date -u)\"} >> /tmp/log/input.log;
+        sleep 10;
+      done
+    volumeMounts:
+    - name: tmplog
+      mountPath: /tmp/log
+  volumes:
+  - name: tmplog
+    emptyDir: {}
+```
+
 
 問題
 
 adapter名前空間において、loggerという名前のPodがbusyboxイメージを使用してコンテナを実行しています。このコンテナは、10秒ごとにdateコマンドの結果をJSON形式でinput.logファイルに記録します。PodはemptyDirボリュームを/tmp/logディレクトリにマウントし、input.logファイルをそこに保存します。
 
-
-
 Podにfluent/fluentd:edgeイメージを使用したコンテナを追加し、/tmp/log/input.logの内容を/tmp/log/output/ディレクトリ内のbufferファイルに出力します。次の手順を実行して下さい。
-
-
 
 コンテナ名をfluentdに設定して下さい
 
@@ -522,13 +1035,207 @@ cd /home/wsl/dev/k8s-ckad/wsl/test/
 
 curl -s https://raw.githubusercontent.com/nz-cloud-udemy/ckad-questions/main/practice-questions/11/init-ingress.sh | sh
 
+```
+helm upgrade --install ingress-nginx ingress-nginx --repo https://kubernetes.github.io/ingress-nginx --namespace ingress-nginx --create-namespace
 
+NODE_IP=$(kubectl get nodes controlplane -o jsonpath='{.status.addresses[?(@.type=="InternalIP")].address}')
+echo $NODE_IP path-ingress.info >> /etc/hosts
+```
 
 2. 次のコマンドを実行して、問題に必要なリソースを作成して下さい。
 
 kubectl apply -f https://raw.githubusercontent.com/nz-cloud-udemy/ckad-questions/main/practice-questions/11/resources.yaml
 
+```
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: path-ingress
+---
+apiVersion: v1
+data:
+  default.conf.template: |
+    server {
+        listen       80;
+        server_name  localhost;
 
+        location /menu {
+            root   /usr/share/nginx/html;
+            index  index.html index.htm;
+            try_files $uri /menu/index.html;
+        }
+    }
+kind: ConfigMap
+metadata:
+  name: menu-config
+  namespace: path-ingress
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: menu-app
+  namespace: path-ingress
+  labels:
+    run: menu-app
+spec:
+  initContainers:
+  - name: init-con
+    image: busybox
+    command: ['sh', '-c', 'echo "Menu" > /tmp/content/index.html']
+    volumeMounts:
+    - name: content
+      mountPath: /tmp/content
+  containers:
+  - image: nginx:alpine
+    name: menu-app
+    volumeMounts:
+    - name: content
+      mountPath: /usr/share/nginx/html/menu
+    - name: conf
+      mountPath: /etc/nginx/templates
+  volumes:
+  - name: content
+    emptyDir: {}
+  - name: conf
+    configMap:
+      name: menu-config
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    run: menu-app
+  name: menu-svc
+  namespace: path-ingress
+spec:
+  ports:
+  - port: 80
+    protocol: TCP
+    targetPort: 80
+  selector:
+    run: menu-app
+  type: ClusterIP
+---
+apiVersion: v1
+data:
+  default.conf.template: |
+    server {
+        listen       80;
+        server_name  localhost;
+
+        location /contact {
+            root   /usr/share/nginx/html;
+            index  index.html index.htm;
+            try_files $uri /contact/index.html;
+        }
+    }
+kind: ConfigMap
+metadata:
+  name: contact-config
+  namespace: path-ingress
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: contact-app
+  namespace: path-ingress
+  labels:
+    run: contact-app
+spec:
+  initContainers:
+  - name: init-con
+    image: busybox
+    command: ['sh', '-c', 'echo "Contact" > /tmp/content/index.html']
+    volumeMounts:
+    - name: content
+      mountPath: /tmp/content
+  containers:
+  - image: nginx:alpine
+    name: contact-app
+    volumeMounts:
+    - name: content
+      mountPath: /usr/share/nginx/html/contact
+    - name: conf
+      mountPath: /etc/nginx/templates
+  volumes:
+  - name: content
+    emptyDir: {}
+  - name: conf
+    configMap:
+      name: contact-config
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    run: contact-app
+  name: contact-svc
+  namespace: path-ingress
+spec:
+  ports:
+  - port: 80
+    protocol: TCP
+    targetPort: 80
+  selector:
+    run: contact-app
+  type: ClusterIP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  annotations:
+  labels:
+    helm.sh/chart: ingress-nginx-4.0.15
+    app.kubernetes.io/name: ingress-nginx
+    app.kubernetes.io/instance: ingress-nginx
+    app.kubernetes.io/version: 1.1.1
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/component: controller
+  name: ingress-nginx-controller-service
+  namespace: ingress-nginx
+spec:
+  type: NodePort
+  ipFamilyPolicy: SingleStack
+  ipFamilies:
+    - IPv4
+  ports:
+    - name: http
+      port: 80
+      nodePort: 31100
+      protocol: TCP
+      targetPort: http
+      appProtocol: http
+    - name: https
+      port: 443
+      nodePort: 30443
+      protocol: TCP
+      targetPort: https
+      appProtocol: https
+  selector:
+    app.kubernetes.io/name: ingress-nginx
+    app.kubernetes.io/instance: ingress-nginx
+    app.kubernetes.io/component: controller
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: info-ingress
+  namespace: path-ingress
+spec:
+  ingressClassName: nginx
+  rules:
+  - host: path-ingress.info
+    http:
+      paths:
+        - path: /contact
+          pathType: Prefix
+          backend:
+            service:
+              name: contact-svc
+              port:
+                number: 80
+```
 
 問題
 
@@ -568,13 +1275,103 @@ cd /home/wsl/dev/k8s-ckad/wsl/test/
 
 wget https://raw.githubusercontent.com/nz-cloud-udemy/ckad-questions/main/practice-questions/12/payment.yaml
 
-
+```
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app-version: stable
+    app: payment
+  name: payment
+  namespace: pay
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: payment
+      app-version: stable
+  template:
+    metadata:
+      labels:
+        app: payment
+        app-version: stable
+    spec:
+      containers:
+      - image: nginx:alpine
+        name: nginx
+        volumeMounts:
+        - name: labels
+          mountPath: /usr/share/nginx/html
+      volumes:
+      - name: labels
+        downwardAPI:
+          items:
+            - path: "index.html"
+              fieldRef:
+                fieldPath: metadata.labels
+```
 
 2. 次のコマンドを実行して、問題に必要なリソースを作成して下さい。
 
 kubectl apply -f https://raw.githubusercontent.com/nz-cloud-udemy/ckad-questions/main/practice-questions/12/resources.yaml
 
-
+```
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: pay
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app-version: stable
+    app: payment
+  name: payment
+  namespace: pay
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: payment
+      app-version: stable
+  template:
+    metadata:
+      labels:
+        app: payment
+        app-version: stable
+    spec:
+      containers:
+      - image: nginx:alpine
+        name: nginx
+        volumeMounts:
+        - name: labels
+          mountPath: /usr/share/nginx/html
+      volumes:
+      - name: labels
+        downwardAPI:
+          items:
+            - path: "index.html"
+              fieldRef:
+                fieldPath: metadata.labels
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: payment-svc
+  namespace: pay
+spec:
+  selector:
+    app: payment
+    app-version: stable
+  ports:
+  - port: 80
+    protocol: TCP
+    targetPort: 80
+    nodePort: 31120
+  type: NodePort
+```
 
 問題
 
@@ -634,7 +1431,50 @@ cd /home/wsl/dev/k8s-ckad/wsl/test/
 
 kubectl apply -f https://raw.githubusercontent.com/nz-cloud-udemy/ckad-questions/main/practice-questions/13/resources.yaml
 
-
+```
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: server
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  labels:
+    run: webapp
+  name: webapp
+  namespace: server
+spec:
+  containers:
+  - image: bitnami/express
+    env:
+      - name: PORT
+        value: "3030"
+    name: webapp
+    resources: {}
+    command: ["sh", "-c", "express app && cd app; npm i && npm start"]
+    ports:
+    - containerPort: 3030
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    run: webapp
+  name: websvc
+  namespace: server
+spec:
+  ports:
+  - port: 80
+    protocol: TCP
+    targetPort: 3000
+    nodePort: 30500
+  selector:
+    run: webapp
+  type: NodePort
+---
+```
 
 問題
 
@@ -713,13 +1553,84 @@ cd /home/wsl/dev/k8s-ckad/wsl/test/
 
 wget https://raw.githubusercontent.com/nz-cloud-udemy/ckad-questions/main/practice-questions/15/web.yaml
 
-
+```
+apiVersion: v1
+kind: Pod
+metadata:
+  labels:
+    run: web
+  name: web
+  namespace: probes
+spec:
+  restartPolicy: Never
+  containers:
+  - image: nginx:alpine
+    name: web
+    volumeMounts:
+      - name: conf
+        mountPath: /etc/nginx/templates
+  volumes:
+    - name: conf
+      configMap:
+        name: ng-cm
+```
 
 2. 以下のコマンドを実行して、問題に必要なリソースを作成して下さい。
 
 kubectl apply -f https://raw.githubusercontent.com/nz-cloud-udemy/ckad-questions/main/practice-questions/15/resources.yaml
 
+```
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: probes
+---
+apiVersion: v1
+data:
+  default.conf.template: |
+    server {
+        listen       80;
+        server_name  localhost;
 
+        location / {
+            root   /usr/share/nginx/html;
+            index  index.html index.htm;
+        }
+
+        location /live {
+            return 200;
+        }
+
+        location /ready {
+            return 200;
+        }
+    }
+kind: ConfigMap
+metadata:
+  name: ng-cm
+  namespace: probes
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  labels:
+    run: web
+  name: web
+  namespace: probes
+spec:
+  restartPolicy: Never
+  containers:
+  - image: nginx:alpine
+    name: web
+    volumeMounts:
+      - name: conf
+        mountPath: /etc/nginx/templates
+  volumes:
+    - name: conf
+      configMap:
+        name: ng-cm
+```
 
 問題
 
@@ -798,13 +1709,59 @@ cd /home/wsl/dev/k8s-ckad/wsl/test/
 
 wget https://raw.githubusercontent.com/nz-cloud-udemy/ckad-questions/main/practice-questions/17/ckad-pv-claim.yaml
 
-
+```
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  namespace: persistent
+  name: ckad-pv-claim
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 100Mi
+  storageClassName: special
+```
 
 2. 以下のコマンドを実行し、問題に必要なリソースを作成して下さい。
 
 kubectl apply -f https://raw.githubusercontent.com/nz-cloud-udemy/ckad-questions/main/practice-questions/17/resources.yaml
 
-
+```
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: persistent
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: ckad-pv
+  namespace: persistent
+spec:
+  capacity:
+    storage: 500Mi
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: standard
+  hostPath:
+    path: /tmp/ckad
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  namespace: persistent
+  name: ckad-pv-claim
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 100Mi
+  storageClassName: special
+```
 
 問題
 
@@ -836,7 +1793,34 @@ cd /home/wsl/dev/k8s-ckad/wsl/test/
 
 kubectl apply -f https://raw.githubusercontent.com/nz-cloud-udemy/ckad-questions/main/practice-questions/18/resources.yaml
 
-
+```
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: session
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: redis-deploy
+  name: redis-deploy
+  namespace: session
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: redis-deploy
+  template:
+    metadata:
+      labels:
+        app: redis-deploy
+    spec:
+      containers:
+      - image: redis:alpinee
+        name: redis
+```
 
 問題
 
